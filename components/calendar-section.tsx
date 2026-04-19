@@ -1,86 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Clock,
-  MapPin,
-  Users,
-  Video,
-} from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, MapPin, Plus, Users, Video } from "lucide-react"
+import { ScheduleEventItem, TaskSummaryItem } from "@/lib/types"
 
-const events = [
-  {
-    id: 1,
-    title: "Sprint Planning Meeting",
-    time: "09:00 - 10:30",
-    type: "meeting",
-    color: "bg-primary",
-    location: "Google Meet",
-    isOnline: true,
-    attendees: [
-      { name: "Nguyễn A", initials: "NA" },
-      { name: "Trần B", initials: "TB" },
-      { name: "Lê C", initials: "LC" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Design Review - Landing Page",
-    time: "14:00 - 15:00",
-    type: "review",
-    color: "bg-accent",
-    location: "Phòng họp A3",
-    isOnline: false,
-    attendees: [
-      { name: "Lê C", initials: "LC" },
-      { name: "Phạm D", initials: "PD" },
-    ],
-  },
-  {
-    id: 3,
-    title: "Code Review Session",
-    time: "16:00 - 17:00",
-    type: "work",
-    color: "bg-chart-3",
-    location: "Zoom",
-    isOnline: true,
-    attendees: [
-      { name: "Nguyễn A", initials: "NA" },
-      { name: "Hoàng E", initials: "HE" },
-    ],
-  },
-]
-
-const upcomingTasks = [
-  {
-    id: 1,
-    title: "Hoàn thành API documentation",
-    deadline: "Hôm nay, 18:00",
-    priority: "high",
-    project: "Team Alpha",
-  },
-  {
-    id: 2,
-    title: "Review PR #234",
-    deadline: "Ngày mai, 10:00",
-    priority: "medium",
-    project: "Product Development",
-  },
-  {
-    id: 3,
-    title: "Update wireframes",
-    deadline: "Thứ 5, 14:00",
-    priority: "low",
-    project: "UI/UX Design",
-  },
-]
+type CalendarSectionProps = {
+  events: ScheduleEventItem[]
+  upcomingTasks: TaskSummaryItem[]
+}
 
 const priorityColors = {
   high: "bg-destructive/10 text-destructive border-destructive/20",
@@ -94,25 +26,25 @@ const priorityLabels = {
   low: "Thấp",
 }
 
-export function CalendarSection() {
-  const [currentDate] = useState(new Date())
-  
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("vi-VN", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-  }
+export function CalendarSection({ events, upcomingTasks }: CalendarSectionProps) {
+  const currentDate = useMemo(
+    () =>
+      new Date().toLocaleDateString("vi-VN", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    []
+  )
 
   return (
-    <section className="py-8">
+    <section id="calendar" className="py-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Lịch & Công việc</h2>
+          <h2 className="text-2xl font-bold text-foreground">Lịch và công việc</h2>
           <p className="text-sm text-muted-foreground">
-            Quản lý thời gian và deadline của bạn
+            Widget này đã sẵn sàng để bind dữ liệu thật từ task và lịch nhóm.
           </p>
         </div>
         <Button className="gap-2">
@@ -122,7 +54,6 @@ export function CalendarSection() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Today's Schedule */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -131,9 +62,7 @@ export function CalendarSection() {
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-sm font-medium">
-                  {formatDate(currentDate)}
-                </span>
+                <span className="text-sm font-medium">{currentDate}</span>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -141,98 +70,110 @@ export function CalendarSection() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {events.map((event) => (
-                <div
-                  key={event.id}
-                  className="group flex gap-4 rounded-lg border p-4 transition-all hover:border-primary/50 hover:shadow-sm"
-                >
-                  <div className={`h-full w-1 shrink-0 rounded-full ${event.color}`} />
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
-                            {event.time}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {event.isOnline ? (
-                              <Video className="h-3.5 w-3.5" />
-                            ) : (
-                              <MapPin className="h-3.5 w-3.5" />
-                            )}
-                            {event.location}
-                          </span>
+            {events.length === 0 ? (
+              <Empty className="border">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <CalendarDays />
+                  </EmptyMedia>
+                  <EmptyTitle>Chưa có sự kiện nào</EmptyTitle>
+                  <EmptyDescription>Tạo meeting hoặc deadline đầu tiên cho workspace của bạn.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="space-y-4">
+                {events.map((event) => (
+                  <div
+                    key={event.id}
+                    className="group flex gap-4 rounded-lg border p-4 transition-all hover:border-primary/50 hover:shadow-sm"
+                  >
+                    <div className={`h-full w-1 shrink-0 rounded-full ${event.color}`} />
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-semibold">{event.title}</h4>
+                          <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {event.time}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              {event.isOnline ? (
+                                <Video className="h-3.5 w-3.5" />
+                              ) : (
+                                <MapPin className="h-3.5 w-3.5" />
+                              )}
+                              {event.location}
+                            </span>
+                          </div>
                         </div>
+                        <Button variant="outline" size="sm" className="opacity-0 transition-opacity group-hover:opacity-100">
+                          Tham gia
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="opacity-0 transition-opacity group-hover:opacity-100"
-                      >
-                        Tham gia
-                      </Button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                      <div className="flex -space-x-2">
-                        {event.attendees.map((attendee, i) => (
-                          <Avatar key={i} className="h-6 w-6 border-2 border-card">
-                            <AvatarImage src="" />
-                            <AvatarFallback className="text-[10px]">
-                              {attendee.initials}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
+                      <div className="flex items-center gap-2">
+                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                        <div className="flex -space-x-2">
+                          {event.attendees.map((attendee, index) => (
+                            <Avatar key={`${event.id}-${index}`} className="h-6 w-6 border-2 border-card">
+                              <AvatarFallback className="text-[10px]">{attendee.initials}</AvatarFallback>
+                            </Avatar>
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {event.attendees.length} người tham gia
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {event.attendees.length} người tham gia
-                      </span>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Upcoming Tasks */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Deadline sắp tới</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {upcomingTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="rounded-lg border p-3 transition-all hover:border-primary/50"
-                >
-                  <div className="mb-2 flex items-start justify-between">
-                    <h4 className="line-clamp-2 text-sm font-medium">
-                      {task.title}
-                    </h4>
-                    <Badge
-                      variant="outline"
-                      className={`shrink-0 text-[10px] ${
-                        priorityColors[task.priority as keyof typeof priorityColors]
-                      }`}
-                    >
-                      {priorityLabels[task.priority as keyof typeof priorityLabels]}
-                    </Badge>
+            {upcomingTasks.length === 0 ? (
+              <Empty className="border">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Clock />
+                  </EmptyMedia>
+                  <EmptyTitle>Chưa có deadline</EmptyTitle>
+                  <EmptyDescription>Task có deadline sẽ xuất hiện ở đây.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="space-y-3">
+                {upcomingTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="rounded-lg border p-3 transition-all hover:border-primary/50"
+                  >
+                    <div className="mb-2 flex items-start justify-between gap-2">
+                      <h4 className="line-clamp-2 text-sm font-medium">{task.title}</h4>
+                      <Badge
+                        variant="outline"
+                        className={`shrink-0 text-[10px] ${priorityColors[task.priority]}`}
+                      >
+                        {priorityLabels[task.priority]}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {task.deadline}
+                      </span>
+                      <span className="truncate">{task.project}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {task.deadline}
-                    </span>
-                    <span className="truncate">{task.project}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <Button variant="ghost" className="mt-4 w-full" size="sm">
               Xem tất cả công việc
             </Button>

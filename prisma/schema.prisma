@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum WorkspaceVisibility {
+  PRIVATE
+  INTERNAL
+}
+
+enum DocumentStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ActivityType {
+  WORKSPACE_CREATED
+  MEMBER_JOINED
+  MEMBER_REMOVED
+  DOCUMENT_CREATED
+  DOCUMENT_UPDATED
+  DOCUMENT_DELETED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_MOVED
+  TASK_DELETED
+  COMMENT_CREATED
+}
+
+model User {
+  id            String             @id @default(cuid())
+  clerkId       String             @unique
+  email         String             @unique
+  name          String?
+  username      String?            @unique
+  avatarUrl     String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  ownedWorkspaces Workspace[]      @relation("WorkspaceOwner")
+  memberships   WorkspaceMember[]
+  createdDocs   Document[]         @relation("CreatedDocuments")
+  updatedDocs   Document[]         @relation("UpdatedDocuments")
+  assignedTasks Task[]             @relation("AssignedTasks")
+  createdTasks  Task[]             @relation("CreatedTasks")
+  comments      Comment[]
+  activities    ActivityLog[]
+  sentInvites   WorkspaceInvitation[] @relation("InvitedBy")
+  presences     Presence[]
+}
+
+model Workspace {
+  id             String              @id @default(cuid())
+  name           String
+  slug           String              @unique
+  description    String?             @db.Text
+  visibility     WorkspaceVisibility @default(PRIVATE)
+  ownerId        String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  owner          User                @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members        WorkspaceMember[]
+  documents      Document[]
+  tasks          Task[]
+  comments       Comment[]
+  activityLogs   ActivityLog[]
+  invitations    WorkspaceInvitation[]
+  presences      Presence[]
+
+  @@index([ownerId])
+}
+
+model WorkspaceMember {
+  id           String         @id @default(cuid())
+  workspaceId  String
+  userId       String
+  role         WorkspaceRole  @default(MEMBER)
+  joinedAt     DateTime       @default(now())
+
+  workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model WorkspaceInvitation {
+  id            String        @id @default(cuid())
+  workspaceId   String
+  email         String
+  role          WorkspaceRole @default(MEMBER)
+  token         String        @unique
+  invitedById   String
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  createdAt     DateTime      @default(now())
+
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy     User          @relation("InvitedBy", fields: [invitedById], references: [id])
+
+  @@index([workspaceId])
+  @@index([email])
+}
+
+model Document {
+  id            String         @id @default(cuid())
+  workspaceId   String
+  title         String
+  content       Json?
+  yjsState      Bytes?         @db.LongBlob
+  status        DocumentStatus @default(ACTIVE)
+  createdById   String
+  updatedById   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy     User           @relation("CreatedDocuments", fields: [createdById], references: [id])
+  updatedBy     User?          @relation("UpdatedDocuments", fields: [updatedById], references: [id])
+  comments      Comment[]
+
+  @@index([workspaceId, updatedAt])
+}
+
+model Task {
+  id            String        @id @default(cuid())
+  workspaceId   String
+  title         String
+  description   String?       @db.Text
+  status        TaskStatus    @default(TODO)
+  priority      TaskPriority  @default(MEDIUM)
+  deadline      DateTime?
+  position      Int           @default(0)
+  assigneeId    String?
+  createdById   String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignee      User?         @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  createdBy     User          @relation("CreatedTasks", fields: [createdById], references: [id])
+  comments      Comment[]
+
+  @@index([workspaceId, status, position])
+  @@index([assigneeId])
+}
+
+model Comment {
+  id            String      @id @default(cuid())
+  workspaceId   String
+  documentId    String?
+  taskId        String?
+  authorId      String
+  content       String      @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  document      Document?   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  task          Task?       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([documentId])
+  @@index([taskId])
+}
+
+model ActivityLog {
+  id            String       @id @default(cuid())
+  workspaceId   String
+  actorId       String
+  type          ActivityType
+  message       String
+  documentId    String?
+  taskId        String?
+  metadata      Json?
+  createdAt     DateTime     @default(now())
+
+  workspace     Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor         User         @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([actorId])
+}
+
+model Presence {
+  id            String      @id @default(cuid())
+  workspaceId   String
+  userId        String
+  socketId      String      @unique
+  documentId    String?
+  status        String      @default("online")
+  lastSeenAt    DateTime    @default(now())
+
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId])
+  @@index([documentId])
+}

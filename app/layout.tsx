@@ -1,31 +1,42 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import './globals.css'
+import type { Metadata } from "next"
+import { ClerkProvider } from "@clerk/nextjs"
+import { Roboto, Roboto_Mono } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
+import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const roboto = Roboto({
+  subsets: ["latin", "vietnamese"],
+  weight: ["300", "400", "500", "700"],
+})
+
+const robotoMono = Roboto_Mono({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "700"],
+})
 
 export const metadata: Metadata = {
-  title: 'CoWorkHub - Hệ thống làm việc cộng tác',
-  description: 'Nền tảng cộng tác làm việc theo thời gian thực - Chỉnh sửa tài liệu, kanban, whiteboard đồng thời với đồng nghiệp',
-  generator: 'v0.app',
+  title: "CoWorkHub | Collaborative Workspace Platform",
+  description:
+    "Nền tảng cộng tác thời gian thực cho tài liệu, task, workspace và dashboard nhóm.",
+  generator: "Codex",
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
+        url: "/icon-light-32x32.png",
+        media: "(prefers-color-scheme: light)",
       },
       {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
+        url: "/icon-dark-32x32.png",
+        media: "(prefers-color-scheme: dark)",
       },
       {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: "/icon.svg",
+        type: "image/svg+xml",
       },
     ],
-    apple: '/apple-icon.png',
+    apple: "/apple-icon.png",
   },
 }
 
@@ -35,11 +46,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className="font-sans antialiased">
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="vi" suppressHydrationWarning>
+        <body className={`${roboto.className} ${robotoMono.className} font-sans antialiased`}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            {children}
+            <Toaster richColors />
+            {process.env.NODE_ENV === "production" && <Analytics />}
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

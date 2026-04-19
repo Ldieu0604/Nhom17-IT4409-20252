@@ -1,9 +1,9 @@
-{"timestamp":"00:00:28.463","source":"Server","level":"LOG","message":""}
-{"timestamp":"00:07:58.229","source":"Server","level":"LOG","message":"○ Compiling / ..."}
-{"timestamp":"00:08:16.287","source":"Browser","level":"INFO","message":"%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"}
-{"timestamp":"00:08:47.910","source":"Browser","level":"WARN","message":"Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}."}
-{"timestamp":"00:08:47.911","source":"Browser","level":"WARN","message":"Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}."}
-{"timestamp":"00:08:47.993","source":"Server","level":"WARN","message":"[browser] \"\\u001b[33mWarning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.\\u001b[39m\""}
-{"timestamp":"00:08:47.994","source":"Browser","level":"WARN","message":"\u001b[33mWarning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.\u001b[39m"}
-{"timestamp":"00:08:48.045","source":"Server","level":"WARN","message":"[browser] \"\\u001b[33mWarning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.\\u001b[39m\""}
-{"timestamp":"00:08:48.046","source":"Browser","level":"WARN","message":"\u001b[33mWarning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.\u001b[39m"}
+{"timestamp":"00:00:23.740","source":"Server","level":"LOG","message":"○ Compiling middleware ..."}
+{"timestamp":"00:00:24.455","source":"Server","level":"WARN","message":"⚠ The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy"}
+{"timestamp":"00:00:31.434","source":"Server","level":"LOG","message":""}
+{"timestamp":"00:00:34.709","source":"Server","level":"LOG","message":"○ Compiling / ..."}
+{"timestamp":"00:00:40.194","source":"Server","level":"LOG","message":"\n\n[Clerk]: You are running in keyless mode.\nYou can claim your keys by visiting https://dashboard.clerk.com/apps/claim?token=d2h6xfpvpqzutgff95y8uz0mka13jwdvdgb0k6g7&return_url=http%3A%2F%2F192.168.1.13%3A3000%2F\n"}
+{"timestamp":"00:00:41.517","source":"Server","level":"WARN","message":"⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from \"192.168.1.13\".\nCross-origin access to Next.js dev resources is blocked by default for safety.\n\nTo allow this host in development, add it to \"allowedDevOrigins\" in next.config.js and restart the dev server:\n\n// next.config.js\nmodule.exports = {\n  allowedDevOrigins: ['192.168.1.13'],\n}\n\nRead more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins"}
+{"timestamp":"00:00:58.405","source":"Server","level":"LOG","message":"○ Compiling /dashboard ..."}
+{"timestamp":"00:01:17.331","source":"Server","level":"LOG","message":"○ Compiling /workspaces/[workspaceId]/documents/[documentId] ..."}
+{"timestamp":"00:02:20.417","source":"Server","level":"LOG","message":"✓ Compiled in 1678ms"}
