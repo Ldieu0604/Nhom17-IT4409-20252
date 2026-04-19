@@ -4,6 +4,9 @@ import { Header } from "@/components/header"
 import { RecentDocuments } from "@/components/recent-documents"
 import { ActivityFeed } from "@/components/activity-feed"
 import { TaskBoard } from "@/components/task-board"
+import { DocumentManager } from "@/components/workspace/document-manager"
+import { AssignmentPanel } from "@/components/workspace/assignment-panel"
+import { WorkspacePlanner } from "@/components/workspace/workspace-planner"
 import { getDashboardData, getWorkspacePageData } from "@/lib/data"
 import { Button } from "@/components/ui/button"
 
@@ -46,8 +49,15 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
           </div>
         </section>
 
+        <WorkspacePlanner workspaceId={workspaceId} tasks={workspaceData.tasks} />
+        <DocumentManager workspaceId={workspaceId} documents={workspaceData.documents} />
         <RecentDocuments documents={workspaceData.documents} />
-        <TaskBoard tasks={workspaceData.tasks} />
+        <TaskBoard workspaceId={workspaceId} tasks={workspaceData.tasks} />
+        <AssignmentPanel
+          workspaceId={workspaceId}
+          tasks={workspaceData.tasks}
+          members={workspaceData.workspace.members}
+        />
         <ActivityFeed activities={workspaceData.activities} />
       </main>
     </div>

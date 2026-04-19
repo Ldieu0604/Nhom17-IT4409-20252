@@ -20,10 +20,10 @@ const demoWorkspaces: WorkspaceCardItem[] = [
     tasksTotal: 25,
     lastActivity: "5 phút trước",
     members: [
-      { name: "Nguyễn Văn A", initials: "NA", role: "Owner" },
-      { name: "Trần Thị B", initials: "TB", role: "Admin" },
-      { name: "Lê Văn C", initials: "LC", role: "Member" },
-      { name: "Phạm Thị D", initials: "PD", role: "Viewer" },
+      { id: "u-demo-1", name: "Nguyễn Văn A", initials: "NA", role: "Owner" },
+      { id: "u-demo-2", name: "Trần Thị B", initials: "TB", role: "Admin" },
+      { id: "u-demo-3", name: "Lê Văn C", initials: "LC", role: "Member" },
+      { id: "u-demo-4", name: "Phạm Thị D", initials: "PD", role: "Viewer" },
     ],
   },
   {
@@ -37,9 +37,9 @@ const demoWorkspaces: WorkspaceCardItem[] = [
     tasksTotal: 15,
     lastActivity: "1 giờ trước",
     members: [
-      { name: "Trần Thị B", initials: "TB", role: "Owner" },
-      { name: "Hoàng Minh E", initials: "HE", role: "Member" },
-      { name: "Kim Phương F", initials: "KF", role: "Member" },
+      { id: "u-demo-2", name: "Trần Thị B", initials: "TB", role: "Owner" },
+      { id: "u-demo-5", name: "Hoàng Minh E", initials: "HE", role: "Member" },
+      { id: "u-demo-6", name: "Kim Phương F", initials: "KF", role: "Member" },
     ],
   },
 ]

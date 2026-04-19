@@ -119,6 +119,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../app/api/workspaces/[workspaceId]/tasks/[taskId]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/workspaces/[workspaceId]/tasks/[taskId]">> = Specific
+  const handler = {} as typeof import("../../../app/api/workspaces/[workspaceId]/tasks/[taskId]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../app/api/workspaces/[workspaceId]/tasks/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/workspaces/[workspaceId]/tasks">> = Specific

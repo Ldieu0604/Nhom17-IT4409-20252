@@ -33,6 +33,7 @@ export type WorkspaceCardItem = {
   tasksTotal: number
   lastActivity: string
   members: Array<{
+    id?: string
     name: string
     initials: string
     avatar?: string | null

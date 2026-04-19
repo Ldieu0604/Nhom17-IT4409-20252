@@ -141,6 +141,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         ? formatRelativeDate(workspace.activityLogs[0].createdAt)
         : "Chưa có hoạt động",
       members: workspace.members.map((member: any) => ({
+        id: member.user.id,
         name: member.user.name ?? member.user.email,
         initials: getInitials(member.user.name ?? member.user.email),
         avatar: member.user.avatarUrl,
@@ -213,6 +214,7 @@ export async function getWorkspacePageData(workspaceId: string) {
         ? formatRelativeDate(workspace.activityLogs[0].createdAt)
         : "Chưa có hoạt động",
       members: workspace.members.map((member: any) => ({
+        id: member.user.id,
         name: member.user.name ?? member.user.email,
         initials: getInitials(member.user.name ?? member.user.email),
         avatar: member.user.avatarUrl,
