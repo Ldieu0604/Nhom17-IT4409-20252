@@ -1,5 +1,6 @@
 {
   "/dashboard/page": "app/dashboard/page.js",
   "/page": "app/page.js",
-  "/workspaces/[workspaceId]/documents/[documentId]/page": "app/workspaces/[workspaceId]/documents/[documentId]/page.js"
+  "/sign-in/[[...sign-in]]/page": "app/sign-in/[[...sign-in]]/page.js",
+  "/sign-up/[[...sign-up]]/page": "app/sign-up/[[...sign-up]]/page.js"
 }

@@ -9,6 +9,7 @@ import { WorkspacesSection } from "@/components/workspaces-section"
 import { CalendarSection } from "@/components/calendar-section"
 import { ChatPanel } from "@/components/chat-panel"
 import { demoDashboardData } from "@/lib/demo-data"
+import { clerkEnabled } from "@/lib/clerk-config"
 
 function getInitials(name?: string | null, email?: string | null) {
   const base = name || email || "Guest"
@@ -21,7 +22,7 @@ function getInitials(name?: string | null, email?: string | null) {
 }
 
 export default async function Home() {
-  const clerkUser = await currentUser()
+  const clerkUser = clerkEnabled ? await currentUser() : null
 
   const headerUser = clerkUser
     ? {

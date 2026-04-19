@@ -4,6 +4,7 @@ import { Roboto, Roboto_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { clerkEnabled, clerkPublishableKey } from "@/lib/clerk-config"
 import "./globals.css"
 
 const roboto = Roboto({
@@ -45,17 +46,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
-    <ClerkProvider>
-      <html lang="vi" suppressHydrationWarning>
-        <body className={`${roboto.className} ${robotoMono.className} font-sans antialiased`}>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            {children}
-            <Toaster richColors />
-            {process.env.NODE_ENV === "production" && <Analytics />}
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+  const content = (
+    <html lang="vi" suppressHydrationWarning>
+      <body className={`${roboto.className} ${robotoMono.className} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          {children}
+          <Toaster richColors />
+          {process.env.NODE_ENV === "production" && <Analytics />}
+        </ThemeProvider>
+      </body>
+    </html>
   )
+
+  if (!clerkEnabled) {
+    return content
+  }
+
+  return <ClerkProvider publishableKey={clerkPublishableKey}>{content}</ClerkProvider>
 }
