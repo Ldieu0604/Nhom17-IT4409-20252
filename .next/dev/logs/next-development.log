@@ -174,3 +174,5 @@
 {"timestamp":"00:40:37.901","source":"Server","level":"LOG","message":"✓ Compiled in 1019ms"}
 {"timestamp":"00:40:58.151","source":"Server","level":"LOG","message":"✓ Compiled in 308ms"}
 {"timestamp":"00:43:27.617","source":"Server","level":"LOG","message":"✓ Compiled in 637ms"}
+{"timestamp":"01:17:58.296","source":"Server","level":"LOG","message":"○ Compiling /sign-in/[[...sign-in]] ..."}
+{"timestamp":"01:18:23.719","source":"Server","level":"LOG","message":"\n\n[Clerk]: Your application is running with your claimed keys.\nYou can safely remove the .clerk/ from your project.\n"}

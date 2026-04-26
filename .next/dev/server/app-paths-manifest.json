@@ -6,5 +6,6 @@
   "/api/workspaces/[workspaceId]/chat/route": "app/api/workspaces/[workspaceId]/chat/route.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/page": "app/page.js",
+  "/sign-in/[[...sign-in]]/page": "app/sign-in/[[...sign-in]]/page.js",
   "/workspaces/[workspaceId]/page": "app/workspaces/[workspaceId]/page.js"
 }
