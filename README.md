@@ -490,61 +490,7 @@ Muốn test direct chat:
 
 - tài khoản B phải được thêm vào workspace hoặc đã chấp nhận lời mời trước
 
-## 12. Việc nên làm tiếp
-
-Ưu tiên cao:
-
-- drag-and-drop thật cho task board
-- nhiều channel nhóm trong workspace
-- module notification UI
-- comment cho task/document
-- collaborative editor bằng Yjs
-- realtime task board
-
-Ưu tiên tiếp theo:
-
-- quản lý role ở UI sâu hơn
-- attachment UI hoàn chỉnh
-- search và filter tốt hơn
-- meeting module nếu muốn mở rộng sản phẩm
-
-## 13. Gợi ý phân công tiếp theo
-
-### Nhóm Database và API
-
-- comments
-- notifications
-- attachments
-- history/version
-- channel nhóm
-
-### Nhóm Task Board
-
-- drag-and-drop
-- position
-- tối ưu UX board
-
-### Nhóm Chat và Realtime
-
-- channel nhóm ngoài `general`
-- read receipt chi tiết hơn
-- notification trình duyệt
-- realtime task/activity
-
-### Nhóm Editor
-
-- Yjs
-- collaborative editing
-- cursor presence
-- restore version
-
-### Nhóm Auth và Permission
-
-- hoàn thiện Clerk flow
-- quản lý role ở UI
-- khóa/mở chức năng theo role
-
-## 14. Kết luận
+## 12. Kết luận
 
 Dự án hiện tại đã vượt mức “khung demo giao diện” và đã có một số luồng dùng được thật:
 
