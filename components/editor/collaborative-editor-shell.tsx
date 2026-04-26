@@ -1,101 +1,120 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { io, Socket } from "socket.io-client"
-import * as Y from "yjs"
+import { useEffect, useRef, useState } from "react"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
-import Collaboration from "@tiptap/extension-collaboration"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 
 type CollaborativeEditorShellProps = {
   documentId: string
   workspaceId: string
   title: string
+  initialContent: any
 }
 
 export function CollaborativeEditorShell({
   documentId,
   workspaceId,
   title,
+  initialContent,
 }: CollaborativeEditorShellProps) {
-  const [connectionState, setConnectionState] = useState<"offline" | "connecting" | "online">("offline")
-
-  const ydoc = useMemo(() => new Y.Doc(), [])
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [documentTitle, setDocumentTitle] = useState(title)
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle")
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({
-        history: false,
-      }),
+      StarterKit,
       Placeholder.configure({
-        placeholder: "Bắt đầu viết nội dung collaborative document...",
-      }),
-      Collaboration.configure({
-        document: ydoc,
+        placeholder: "Bắt đầu viết nội dung tài liệu...",
       }),
     ],
-    content: "",
+    content: initialContent,
   })
 
-  useEffect(() => {
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL
+  const persistDocument = async (payload: { title?: string; content?: any }) => {
+    try {
+      setSaveState("saving")
+      const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
 
-    if (!socketUrl) {
-      setConnectionState("offline")
+      if (!response.ok) {
+        throw new Error("Không thể lưu tài liệu.")
+      }
+
+      setSaveState("saved")
+    } catch {
+      setSaveState("error")
+    }
+  }
+
+  useEffect(() => {
+    if (!editor) {
       return
     }
 
-    setConnectionState("connecting")
-    const socket: Socket = io(socketUrl, {
-      path: "/socket.io",
-      transports: ["websocket"],
-      query: {
-        workspaceId,
-        documentId,
-      },
-    })
+    const handleUpdate = () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
+      }
 
-    socket.on("connect", () => {
-      setConnectionState("online")
-      socket.emit("document:join", { workspaceId, documentId })
-    })
+      saveTimerRef.current = setTimeout(() => {
+        void persistDocument({
+          title: documentTitle,
+          content: editor.getJSON(),
+        })
+      }, 800)
+    }
 
-    socket.on("disconnect", () => {
-      setConnectionState("offline")
-    })
+    editor.on("update", handleUpdate)
 
     return () => {
-      socket.disconnect()
+      editor.off("update", handleUpdate)
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
+      }
     }
-  }, [documentId, workspaceId])
+  }, [editor, documentTitle, documentId, workspaceId])
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
       <Card>
         <CardHeader className="border-b pb-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="text-xl">{title}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Tiptap + Yjs editor shell. Khi bật Socket.IO server, editor sẽ nhận realtime sync.
-              </p>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <Input
+                value={documentTitle}
+                onChange={(event) => setDocumentTitle(event.target.value)}
+                onBlur={() => void persistDocument({ title: documentTitle })}
+                className="max-w-2xl text-lg font-semibold"
+              />
+              <Badge variant={saveState === "error" ? "destructive" : "secondary"}>
+                {saveState === "saving"
+                  ? "Đang lưu..."
+                  : saveState === "saved"
+                  ? "Đã lưu"
+                  : saveState === "error"
+                  ? "Lưu lỗi"
+                  : "Sẵn sàng"}
+              </Badge>
             </div>
-            <Badge variant={connectionState === "online" ? "default" : "secondary"}>
-              {connectionState === "online"
-                ? "Realtime connected"
-                : connectionState === "connecting"
-                ? "Connecting..."
-                : "Offline fallback"}
-            </Badge>
+            <p className="text-sm text-muted-foreground">
+              Bạn có thể nhập tay trực tiếp trong editor. Nội dung được tự động lưu về database.
+            </p>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="min-h-[420px] rounded-2xl border bg-background p-4">
+          <div className="min-h-[520px] rounded-2xl border bg-background p-4">
             <EditorContent editor={editor} className="prose prose-sm max-w-none dark:prose-invert" />
           </div>
         </CardContent>
@@ -103,20 +122,29 @@ export function CollaborativeEditorShell({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Realtime checklist</CardTitle>
+          <CardTitle className="text-lg">Tài liệu</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="rounded-xl border p-3">
-            Room: <span className="font-medium text-foreground">{workspaceId}</span>
+            Workspace: <span className="font-medium text-foreground">{workspaceId}</span>
           </div>
           <div className="rounded-xl border p-3">
             Document: <span className="font-medium text-foreground">{documentId}</span>
           </div>
           <div className="rounded-xl border p-3">
-            Trạng thái hiện tại: <span className="font-medium text-foreground">{connectionState}</span>
+            Chế độ hiện tại: <span className="font-medium text-foreground">Nhập tay + autosave</span>
           </div>
-          <Button variant="outline" className="w-full">
-            Lưu snapshot thủ công
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() =>
+              void persistDocument({
+                title: documentTitle,
+                content: editor?.getJSON(),
+              })
+            }
+          >
+            Lưu thủ công
           </Button>
         </CardContent>
       </Card>

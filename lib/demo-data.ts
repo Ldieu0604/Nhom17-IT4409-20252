@@ -1,4 +1,4 @@
-import { DashboardData, WorkspaceCardItem } from "@/lib/types"
+import { DashboardData, WorkspaceCardItem, WorkspaceChatPanelData } from "@/lib/types"
 
 const demoUser = {
   id: "demo-user",
@@ -159,6 +159,84 @@ export const demoDashboardData: DashboardData = {
       createdAtLabel: "20 phút trước",
     },
   ],
+  pendingInvitations: [
+    {
+      id: "invite-dashboard-1",
+      workspaceId: "ws-marketing-q2",
+      workspaceName: "Marketing Campaign Q2",
+      email: "nguyenvana@email.com",
+      role: "MEMBER",
+      invitedBy: "Trần Thị B",
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ],
+}
+
+const demoWorkspaceChat: WorkspaceChatPanelData = {
+  workspaceId: demoWorkspaces[0].id,
+  channelId: "channel-demo-general",
+  channels: [
+    {
+      id: "channel-demo-general",
+      name: "general",
+      description: "Kênh chat demo của workspace.",
+      type: "GENERAL",
+      unreadCount: 1,
+      memberNames: ["Nguyễn Văn A", "Lê Văn C", "Phạm Thị D"],
+    },
+    {
+      id: "channel-demo-direct",
+      name: "Nguyễn Văn A, Lê Văn C",
+      description: "Direct message demo.",
+      type: "DIRECT",
+      unreadCount: 0,
+      memberNames: ["Nguyễn Văn A", "Lê Văn C"],
+    },
+  ],
+  channelName: "general",
+  channelDescription: "Kênh chat demo của workspace.",
+  unreadCount: 1,
+  messages: [
+    {
+      id: "chat-demo-1",
+      content: "Mọi người nhớ cập nhật tiến độ task trước 17:00 hôm nay.",
+      createdAtLabel: "5 phút trước",
+      readByCount: 2,
+      reactions: [
+        {
+          emoji: "👍",
+          count: 1,
+          reactedByCurrentUser: false,
+        },
+      ],
+      replyTo: null,
+      sender: {
+        id: "u-demo-1",
+        name: "Nguyễn Văn A",
+        initials: "NA",
+      },
+      isOwn: false,
+    },
+    {
+      id: "chat-demo-2",
+      content: "Mình đang hoàn thiện phần board và sẽ đẩy code tối nay.",
+      createdAtLabel: "2 phút trước",
+      readByCount: 1,
+      reactions: [],
+      replyTo: {
+        id: "chat-demo-1",
+        senderName: "Nguyễn Văn A",
+        content: "Mọi người nhớ cập nhật tiến độ task trước 17:00 hôm nay.",
+      },
+      sender: {
+        id: "u-demo-3",
+        name: "Lê Văn C",
+        initials: "LC",
+      },
+      isOwn: true,
+    },
+  ],
 }
 
 export const demoWorkspaceDetails = {
@@ -191,4 +269,17 @@ export const demoWorkspaceDetails = {
     },
   ],
   activities: demoDashboardData.activities,
+  currentUserRole: "OWNER",
+  pendingInvitations: [
+    {
+      id: "invite-demo-1",
+      email: "newmember@email.com",
+      role: "MEMBER",
+      status: "PENDING",
+      expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: new Date().toISOString(),
+      invitedBy: "Nguyễn Văn A",
+    },
+  ],
+  chat: demoWorkspaceChat,
 }

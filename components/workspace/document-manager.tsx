@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { ChangeEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FileText, Plus, TimerReset } from "lucide-react"
+import { FileText, Plus, TimerReset, Upload } from "lucide-react"
 import { DocumentCardItem } from "@/lib/types"
 
 type DocumentManagerProps = {
@@ -20,7 +20,15 @@ type DocumentManagerProps = {
 export function DocumentManager({ workspaceId, documents }: DocumentManagerProps) {
   const router = useRouter()
   const [title, setTitle] = useState("")
+  const [fileName, setFileName] = useState("")
+  const [initialText, setInitialText] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const resetForm = () => {
+    setTitle("")
+    setFileName("")
+    setInitialText("")
+  }
 
   const handleCreateDocument = async () => {
     if (!title.trim()) {
@@ -35,7 +43,7 @@ export function DocumentManager({ workspaceId, documents }: DocumentManagerProps
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, initialText }),
       })
 
       if (!response.ok) {
@@ -44,7 +52,7 @@ export function DocumentManager({ workspaceId, documents }: DocumentManagerProps
 
       const payload = await response.json()
       toast.success("Đã tạo tài liệu mới.")
-      setTitle("")
+      resetForm()
 
       if (payload?.item?.id) {
         router.push(`/workspaces/${workspaceId}/documents/${payload.item.id}`)
@@ -57,6 +65,30 @@ export function DocumentManager({ workspaceId, documents }: DocumentManagerProps
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const handleFileImport = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    if (!file.name.endsWith(".txt") && !file.name.endsWith(".md")) {
+      toast.error("Hiện tại chỉ hỗ trợ import file .txt hoặc .md")
+      return
+    }
+
+    const text = await file.text()
+    setInitialText(text)
+    setFileName(file.name)
+
+    if (!title.trim()) {
+      const inferredTitle = file.name.replace(/\.(txt|md)$/i, "")
+      setTitle(inferredTitle)
+    }
+
+    toast.success("Đã nạp nội dung file vào tài liệu mới.")
   }
 
   return (
@@ -76,12 +108,35 @@ export function DocumentManager({ workspaceId, documents }: DocumentManagerProps
             />
           </div>
 
+          <div className="grid gap-2">
+            <Label htmlFor="document-upload">Import file .txt / .md</Label>
+            <Input id="document-upload" type="file" accept=".txt,.md,text/plain,text/markdown" onChange={handleFileImport} />
+            {fileName ? (
+              <p className="text-xs text-muted-foreground">Đã nạp file: {fileName}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Bạn có thể nhập tay sau khi tạo tài liệu hoặc import nhanh từ file văn bản.
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="document-seed">Nội dung khởi tạo</Label>
+            <textarea
+              id="document-seed"
+              className="min-h-32 rounded-md border bg-background px-3 py-2 text-sm"
+              value={initialText}
+              onChange={(event) => setInitialText(event.target.value)}
+              placeholder="Nhập tay nội dung ban đầu hoặc import từ file..."
+            />
+          </div>
+
           <div className="grid gap-3 pt-2">
             <Button onClick={handleCreateDocument} disabled={isSubmitting} className="gap-2">
               <Plus className="h-4 w-4" />
               {isSubmitting ? "Đang tạo..." : "Tạo và mở editor"}
             </Button>
-            <Button variant="outline" onClick={() => setTitle("")} className="gap-2">
+            <Button variant="outline" onClick={resetForm} className="gap-2">
               <TimerReset className="h-4 w-4" />
               Làm mới
             </Button>
@@ -91,7 +146,13 @@ export function DocumentManager({ workspaceId, documents }: DocumentManagerProps
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-xl">Tài liệu trong workspace</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl">Tài liệu trong workspace</CardTitle>
+            <Badge variant="secondary" className="gap-1">
+              <Upload className="h-3.5 w-3.5" />
+              Nhập tay hoặc import file
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {documents.length > 0 ? (

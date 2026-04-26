@@ -19,6 +19,13 @@ enum WorkspaceVisibility {
   INTERNAL
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
 enum DocumentStatus {
   DRAFT
   ACTIVE
@@ -53,175 +60,644 @@ enum ActivityType {
   COMMENT_CREATED
 }
 
-model User {
-  id            String             @id @default(cuid())
-  clerkId       String             @unique
-  email         String             @unique
-  name          String?
-  username      String?            @unique
-  avatarUrl     String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+enum TaskHistoryType {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  ASSIGNEE_CHANGED
+  DEADLINE_CHANGED
+  POSITION_CHANGED
+  LABEL_ADDED
+  LABEL_REMOVED
+  CHECKLIST_UPDATED
+  COMMENT_ADDED
+  DEPENDENCY_ADDED
+  DEPENDENCY_REMOVED
+}
 
-  ownedWorkspaces Workspace[]      @relation("WorkspaceOwner")
-  memberships   WorkspaceMember[]
-  createdDocs   Document[]         @relation("CreatedDocuments")
-  updatedDocs   Document[]         @relation("UpdatedDocuments")
-  assignedTasks Task[]             @relation("AssignedTasks")
-  createdTasks  Task[]             @relation("CreatedTasks")
-  comments      Comment[]
-  activities    ActivityLog[]
-  sentInvites   WorkspaceInvitation[] @relation("InvitedBy")
-  presences     Presence[]
+enum TaskDependencyType {
+  BLOCKS
+  RELATES_TO
+  DUPLICATES
+}
+
+enum NotificationType {
+  WORKSPACE_INVITATION
+  TASK_ASSIGNED
+  TASK_UPDATED
+  TASK_DUE_SOON
+  TASK_OVERDUE
+  COMMENT_MENTION
+  COMMENT_REPLY
+  DOCUMENT_SHARED
+  DOCUMENT_UPDATED
+  CHAT_MESSAGE
+  SYSTEM
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum AttachmentKind {
+  FILE
+  IMAGE
+  VIDEO
+  AUDIO
+  LINK
+}
+
+enum ChannelType {
+  GENERAL
+  ANNOUNCEMENT
+  DIRECT
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  SYSTEM
+  FILE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  username  String?  @unique
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedWorkspaces         Workspace[]           @relation("WorkspaceOwner")
+  memberships             WorkspaceMember[]
+  createdDocs             Document[]            @relation("CreatedDocuments")
+  updatedDocs             Document[]            @relation("UpdatedDocuments")
+  createdVersions         DocumentVersion[]
+  assignedTasks           Task[]                @relation("AssignedTasks")
+  createdTasks            Task[]                @relation("CreatedTasks")
+  watchedTasks            TaskWatcher[]
+  completedChecklistItems TaskChecklistItem[]   @relation("CompletedChecklistItems")
+  taskHistories           TaskHistory[]         @relation("TaskHistoryActor")
+  createdLabels           TaskLabel[]           @relation("CreatedTaskLabels")
+  assignedTaskLabels      TaskLabelAssignment[] @relation("TaskLabelAssignedBy")
+  createdTaskDependencies TaskDependency[]      @relation("CreatedTaskDependencies")
+  comments                Comment[]             @relation("CommentAuthor")
+  resolvedComments        Comment[]             @relation("ResolvedComments")
+  commentMentions         CommentMention[]
+  commentReactions        CommentReaction[]
+  activities              ActivityLog[]
+  sentInvites             WorkspaceInvitation[] @relation("InvitedBy")
+  receivedInvites         WorkspaceInvitation[] @relation("InvitedUser")
+  presences               Presence[]
+  uploadedAttachments     Attachment[]
+  notifications           Notification[]        @relation("NotificationRecipient")
+  triggeredNotifications  Notification[]        @relation("NotificationActor")
+  createdChannels         ChatChannel[]         @relation("ChannelCreator")
+  channelMemberships      ChatChannelMember[]
+  sentMessages            ChatMessage[]         @relation("MessageSender")
+  messageReadReceipts     ChatMessageRead[]
+  messageReactions        ChatMessageReaction[]
 }
 
 model Workspace {
-  id             String              @id @default(cuid())
-  name           String
-  slug           String              @unique
-  description    String?             @db.Text
-  visibility     WorkspaceVisibility @default(PRIVATE)
-  ownerId        String
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
+  id          String              @id @default(cuid())
+  name        String
+  slug        String              @unique
+  description String?             @db.Text
+  visibility  WorkspaceVisibility @default(PRIVATE)
+  ownerId     String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  archivedAt  DateTime?
+  deletedAt   DateTime?
 
-  owner          User                @relation("WorkspaceOwner", fields: [ownerId], references: [id])
-  members        WorkspaceMember[]
-  documents      Document[]
-  tasks          Task[]
-  comments       Comment[]
-  activityLogs   ActivityLog[]
-  invitations    WorkspaceInvitation[]
-  presences      Presence[]
+  owner            User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  settings         WorkspaceSetting?
+  members          WorkspaceMember[]
+  documents        Document[]
+  tasks            Task[]
+  labels           TaskLabel[]
+  comments         Comment[]
+  activityLogs     ActivityLog[]
+  taskHistories    TaskHistory[]
+  invitations      WorkspaceInvitation[]
+  presences        Presence[]
+  attachments      Attachment[]
+  notifications    Notification[]
+  channels         ChatChannel[]
+  documentVersions DocumentVersion[]
+  chatMessages     ChatMessage[]
 
   @@index([ownerId])
+  @@index([deletedAt])
+}
+
+model WorkspaceSetting {
+  id                       String       @id @default(cuid())
+  workspaceId              String       @unique
+  allowMemberInvites       Boolean      @default(true)
+  allowViewerComments      Boolean      @default(true)
+  enableDocumentVersioning Boolean      @default(true)
+  enableTaskAutoWatch      Boolean      @default(true)
+  defaultTaskStatus        TaskStatus   @default(TODO)
+  defaultTaskPriority      TaskPriority @default(MEDIUM)
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model WorkspaceMember {
-  id           String         @id @default(cuid())
-  workspaceId  String
-  userId       String
-  role         WorkspaceRole  @default(MEMBER)
-  joinedAt     DateTime       @default(now())
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
 
-  workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, userId])
   @@index([userId])
 }
 
 model WorkspaceInvitation {
-  id            String        @id @default(cuid())
+  id            String           @id @default(cuid())
   workspaceId   String
   email         String
-  role          WorkspaceRole @default(MEMBER)
-  token         String        @unique
+  role          WorkspaceRole    @default(MEMBER)
+  token         String           @unique
   invitedById   String
+  invitedUserId String?
+  status        InvitationStatus @default(PENDING)
   expiresAt     DateTime
   acceptedAt    DateTime?
-  createdAt     DateTime      @default(now())
+  createdAt     DateTime         @default(now())
 
-  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  invitedBy     User          @relation("InvitedBy", fields: [invitedById], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy   User      @relation("InvitedBy", fields: [invitedById], references: [id])
+  invitedUser User?     @relation("InvitedUser", fields: [invitedUserId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([email])
+  @@index([status, expiresAt])
 }
 
 model Document {
-  id            String         @id @default(cuid())
-  workspaceId   String
-  title         String
-  content       Json?
-  yjsState      Bytes?         @db.LongBlob
-  status        DocumentStatus @default(ACTIVE)
-  createdById   String
-  updatedById   String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id          String         @id @default(cuid())
+  workspaceId String
+  title       String
+  summary     String?        @db.Text
+  content     Json?
+  yjsState    Bytes?         @db.LongBlob
+  status      DocumentStatus @default(ACTIVE)
+  createdById String
+  updatedById String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  archivedAt  DateTime?
+  deletedAt   DateTime?
 
-  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  createdBy     User           @relation("CreatedDocuments", fields: [createdById], references: [id])
-  updatedBy     User?          @relation("UpdatedDocuments", fields: [updatedById], references: [id])
+  workspace     Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy     User              @relation("CreatedDocuments", fields: [createdById], references: [id])
+  updatedBy     User?             @relation("UpdatedDocuments", fields: [updatedById], references: [id], onDelete: SetNull)
   comments      Comment[]
+  versions      DocumentVersion[]
+  attachments   Attachment[]
+  notifications Notification[]
 
   @@index([workspaceId, updatedAt])
+  @@index([deletedAt])
+}
+
+model DocumentVersion {
+  id            String   @id @default(cuid())
+  documentId    String
+  workspaceId   String
+  versionNumber Int
+  title         String
+  content       Json?
+  yjsState      Bytes?   @db.LongBlob
+  createdById   String
+  createdAt     DateTime @default(now())
+
+  document  Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User      @relation(fields: [createdById], references: [id])
+
+  @@unique([documentId, versionNumber])
+  @@index([workspaceId, createdAt])
 }
 
 model Task {
-  id            String        @id @default(cuid())
-  workspaceId   String
-  title         String
-  description   String?       @db.Text
-  status        TaskStatus    @default(TODO)
-  priority      TaskPriority  @default(MEDIUM)
-  deadline      DateTime?
-  position      Int           @default(0)
-  assigneeId    String?
-  createdById   String
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id               String       @id @default(cuid())
+  workspaceId      String
+  title            String
+  description      String?      @db.Text
+  status           TaskStatus   @default(TODO)
+  priority         TaskPriority @default(MEDIUM)
+  startDate        DateTime?
+  deadline         DateTime?
+  completedAt      DateTime?
+  estimatedMinutes Int?
+  actualMinutes    Int?
+  position         Int          @default(0)
+  assigneeId       String?
+  createdById      String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  archivedAt       DateTime?
+  deletedAt        DateTime?
 
-  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  assignee      User?         @relation("AssignedTasks", fields: [assigneeId], references: [id])
-  createdBy     User          @relation("CreatedTasks", fields: [createdById], references: [id])
-  comments      Comment[]
+  workspace      Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignee       User?                 @relation("AssignedTasks", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy      User                  @relation("CreatedTasks", fields: [createdById], references: [id])
+  comments       Comment[]
+  labels         TaskLabelAssignment[]
+  watchers       TaskWatcher[]
+  checklists     TaskChecklist[]
+  historyEntries TaskHistory[]
+  dependencies   TaskDependency[]      @relation("TaskDependencies")
+  blockedBy      TaskDependency[]      @relation("BlockedByTasks")
+  attachments    Attachment[]
+  notifications  Notification[]
 
   @@index([workspaceId, status, position])
   @@index([assigneeId])
+  @@index([deletedAt])
+}
+
+model TaskLabel {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  color       String?
+  description String?  @db.Text
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User?                 @relation("CreatedTaskLabels", fields: [createdById], references: [id], onDelete: SetNull)
+  tasks     TaskLabelAssignment[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+model TaskLabelAssignment {
+  taskId       String
+  labelId      String
+  assignedById String?
+  assignedAt   DateTime @default(now())
+
+  task       Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label      TaskLabel @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  assignedBy User?     @relation("TaskLabelAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@id([taskId, labelId])
+  @@index([labelId])
+}
+
+model TaskWatcher {
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, userId])
+  @@index([userId])
+}
+
+model TaskChecklist {
+  id        String   @id @default(cuid())
+  taskId    String
+  title     String
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task  Task                @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  items TaskChecklistItem[]
+
+  @@index([taskId, position])
+}
+
+model TaskChecklistItem {
+  id            String    @id @default(cuid())
+  checklistId   String
+  content       String
+  isCompleted   Boolean   @default(false)
+  completedAt   DateTime?
+  completedById String?
+  position      Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  checklist   TaskChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  completedBy User?         @relation("CompletedChecklistItems", fields: [completedById], references: [id], onDelete: SetNull)
+
+  @@index([checklistId, position])
+  @@index([completedById])
+}
+
+model TaskDependency {
+  id              String             @id @default(cuid())
+  taskId          String
+  dependsOnTaskId String
+  type            TaskDependencyType @default(BLOCKS)
+  createdById     String?
+  createdAt       DateTime           @default(now())
+
+  task          Task  @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask Task  @relation("BlockedByTasks", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  createdBy     User? @relation("CreatedTaskDependencies", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([dependsOnTaskId])
+}
+
+model TaskHistory {
+  id          String          @id @default(cuid())
+  taskId      String
+  workspaceId String
+  actorId     String
+  type        TaskHistoryType
+  fromValue   String?         @db.Text
+  toValue     String?         @db.Text
+  message     String?         @db.Text
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor     User      @relation("TaskHistoryActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@index([workspaceId, createdAt])
 }
 
 model Comment {
-  id            String      @id @default(cuid())
-  workspaceId   String
-  documentId    String?
-  taskId        String?
-  authorId      String
-  content       String      @db.Text
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id              String    @id @default(cuid())
+  workspaceId     String
+  documentId      String?
+  taskId          String?
+  parentCommentId String?
+  authorId        String
+  resolvedById    String?
+  content         String    @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  resolvedAt      DateTime?
+  deletedAt       DateTime?
 
-  workspace     Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  document      Document?   @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  task          Task?       @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  workspace     Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  document      Document?         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  task          Task?             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  parentComment Comment?          @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies       Comment[]         @relation("CommentReplies")
+  author        User              @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  resolvedBy    User?             @relation("ResolvedComments", fields: [resolvedById], references: [id], onDelete: SetNull)
+  mentions      CommentMention[]
+  reactions     CommentReaction[]
+  attachments   Attachment[]
+  notifications Notification[]
 
   @@index([workspaceId, createdAt])
   @@index([documentId])
   @@index([taskId])
+  @@index([parentCommentId])
+  @@index([deletedAt])
+}
+
+model CommentMention {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([userId])
+}
+
+model CommentReaction {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId, emoji])
+  @@index([userId])
 }
 
 model ActivityLog {
-  id            String       @id @default(cuid())
-  workspaceId   String
-  actorId       String
-  type          ActivityType
-  message       String
-  documentId    String?
-  taskId        String?
-  metadata      Json?
-  createdAt     DateTime     @default(now())
+  id          String       @id @default(cuid())
+  workspaceId String
+  actorId     String
+  type        ActivityType
+  message     String
+  documentId  String?
+  taskId      String?
+  commentId   String?
+  metadata    Json?
+  createdAt   DateTime     @default(now())
 
-  workspace     Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  actor         User         @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor     User      @relation(fields: [actorId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId, createdAt])
   @@index([actorId])
 }
 
 model Presence {
-  id            String      @id @default(cuid())
-  workspaceId   String
-  userId        String
-  socketId      String      @unique
-  documentId    String?
-  status        String      @default("online")
-  lastSeenAt    DateTime    @default(now())
+  id             String   @id @default(cuid())
+  workspaceId    String
+  userId         String
+  socketId       String   @unique
+  documentId     String?
+  channelId      String?
+  status         String   @default("online")
+  connectionMeta Json?
+  connectedAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
 
-  workspace     Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId, userId])
   @@index([documentId])
+  @@index([channelId])
+}
+
+model Attachment {
+  id              String         @id @default(cuid())
+  workspaceId     String
+  uploaderId      String
+  taskId          String?
+  documentId      String?
+  commentId       String?
+  messageId       String?
+  kind            AttachmentKind @default(FILE)
+  fileName        String
+  originalName    String?
+  mimeType        String?
+  extension       String?
+  sizeBytes       BigInt?
+  storageProvider String         @default("local")
+  storageKey      String
+  publicUrl       String?
+  thumbnailUrl    String?
+  checksum        String?
+  createdAt       DateTime       @default(now())
+  deletedAt       DateTime?
+
+  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploader  User         @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  task      Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  document  Document?    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  comment   Comment?     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  message   ChatMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([taskId])
+  @@index([documentId])
+  @@index([commentId])
+  @@index([messageId])
+  @@index([deletedAt])
+}
+
+model Notification {
+  id          String             @id @default(cuid())
+  recipientId String
+  actorId     String?
+  workspaceId String?
+  taskId      String?
+  documentId  String?
+  commentId   String?
+  messageId   String?
+  type        NotificationType
+  status      NotificationStatus @default(UNREAD)
+  title       String
+  content     String?            @db.Text
+  actionUrl   String?
+  metadata    Json?
+  readAt      DateTime?
+  createdAt   DateTime           @default(now())
+
+  recipient User         @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  actor     User?        @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  workspace Workspace?   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task      Task?        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  document  Document?    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  comment   Comment?     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  message   ChatMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, status, createdAt])
+  @@index([workspaceId, createdAt])
+}
+
+model ChatChannel {
+  id          String      @id @default(cuid())
+  workspaceId String
+  name        String
+  slug        String?
+  type        ChannelType @default(GENERAL)
+  description String?     @db.Text
+  createdById String?
+  isPrivate   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  workspace Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User?               @relation("ChannelCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  members   ChatChannelMember[]
+  messages  ChatMessage[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId, type])
+  @@index([deletedAt])
+}
+
+model ChatChannelMember {
+  channelId  String
+  userId     String
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
+  isMuted    Boolean   @default(false)
+
+  channel ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([channelId, userId])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id              String      @id @default(cuid())
+  workspaceId     String
+  channelId       String
+  senderId        String?
+  parentMessageId String?
+  type            MessageType @default(TEXT)
+  content         String?     @db.LongText
+  metadata        Json?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
+
+  workspace     Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  channel       ChatChannel           @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  sender        User?                 @relation("MessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+  parentMessage ChatMessage?          @relation("MessageReplies", fields: [parentMessageId], references: [id], onDelete: Cascade)
+  replies       ChatMessage[]         @relation("MessageReplies")
+  attachments   Attachment[]
+  notifications Notification[]
+  readReceipts  ChatMessageRead[]
+  reactions     ChatMessageReaction[]
+
+  @@index([workspaceId, createdAt])
+  @@index([channelId, createdAt])
+  @@index([parentMessageId])
+  @@index([deletedAt])
+}
+
+model ChatMessageRead {
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId])
+  @@index([userId, readAt])
+}
+
+model ChatMessageReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([userId])
 }

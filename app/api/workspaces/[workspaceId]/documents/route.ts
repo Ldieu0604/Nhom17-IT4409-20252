@@ -8,7 +8,32 @@ import { prisma } from "@/lib/prisma"
 
 const createDocumentSchema = z.object({
   title: z.string().min(1, "Tiêu đề tài liệu là bắt buộc."),
+  initialText: z.string().optional(),
 })
+
+function textToTiptapDoc(text?: string) {
+  const normalized = (text ?? "").trim()
+
+  if (!normalized) {
+    return {
+      type: "doc",
+      content: [],
+    }
+  }
+
+  return {
+    type: "doc",
+    content: normalized.split(/\n{2,}/).map((paragraph) => ({
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: paragraph,
+        },
+      ],
+    })),
+  }
+}
 
 type RouteContext = {
   params: Promise<{
@@ -50,11 +75,23 @@ export async function POST(request: Request, { params }: RouteContext) {
   const parsed = createDocumentSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ message: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ." }, { status: 400 })
+    return NextResponse.json(
+      { message: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ." },
+      { status: 400 }
+    )
   }
 
   if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ item: { id: `mock-doc-${Date.now()}`, ...parsed.data } }, { status: 201 })
+    return NextResponse.json(
+      {
+        item: {
+          id: `mock-doc-${Date.now()}`,
+          title: parsed.data.title,
+          content: textToTiptapDoc(parsed.data.initialText),
+        },
+      },
+      { status: 201 }
+    )
   }
 
   await assertWorkspaceAccess(user.id, workspaceId)
@@ -66,10 +103,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       status: DocumentStatus.ACTIVE,
       createdById: user.id,
       updatedById: user.id,
-      content: {
-        type: "doc",
-        content: [],
-      },
+      content: textToTiptapDoc(parsed.data.initialText),
     },
   })
 

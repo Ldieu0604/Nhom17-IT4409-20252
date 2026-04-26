@@ -4,6 +4,7 @@ import { WorkspacesSection } from "@/components/workspaces-section"
 import { CalendarSection } from "@/components/calendar-section"
 import { ChatPanel } from "@/components/chat-panel"
 import { ActivityFeed } from "@/components/activity-feed"
+import { WorkspaceInvitationsPanel } from "@/components/workspace-invitations-panel"
 import { getDashboardData } from "@/lib/data"
 
 export default async function DashboardPage() {
@@ -41,6 +42,7 @@ export default async function DashboardPage() {
         </section>
 
         <RecentDocuments documents={data.recentDocuments} />
+        <WorkspaceInvitationsPanel invitations={data.pendingInvitations ?? []} />
         <WorkspacesSection workspaces={data.workspaces} />
 
         <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">

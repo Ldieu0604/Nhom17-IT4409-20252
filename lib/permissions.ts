@@ -16,3 +16,17 @@ export async function assertWorkspaceAccess(userId: string, workspaceId: string)
 
   return membership
 }
+
+export async function assertWorkspaceRole(
+  userId: string,
+  workspaceId: string,
+  allowedRoles: Array<"OWNER" | "ADMIN" | "MEMBER" | "VIEWER">
+) {
+  const membership = await assertWorkspaceAccess(userId, workspaceId)
+
+  if (!allowedRoles.includes(membership.role)) {
+    throw new Error("Bạn không có quyền thực hiện thao tác này.")
+  }
+
+  return membership
+}

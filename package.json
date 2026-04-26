@@ -4,10 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:lan": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "realtime:dev": "node server/realtime-server.js"
+    "realtime:dev": "node server/realtime-server.js",
+    "realtime:lan": "node server/realtime-server.js",
+    "db:seed": "node prisma/seed.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.39.2",

@@ -1,11 +1,11 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { UserButton } from "@clerk/nextjs"
+import { Bell, Calendar, FileText, LayoutGrid, Menu, Search, Settings, Users, X } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Bell, Calendar, FileText, LayoutGrid, Menu, Search, Settings, Users, X } from "lucide-react"
+import { Input } from "@/components/ui/input"
 
 type HeaderProps = {
   user?: {
@@ -37,6 +37,11 @@ export function Header({
   searchPlaceholder = "Tìm kiếm tài liệu, workspace...",
 }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const userDisplay = useMemo(
     () =>
@@ -57,9 +62,7 @@ export function Header({
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
               <Users className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="hidden text-xl font-bold text-foreground sm:inline-block">
-              CoWorkHub
-            </span>
+            <span className="hidden text-xl font-bold text-foreground sm:inline-block">CoWorkHub</span>
             <span className="text-xl font-bold text-foreground sm:hidden">CWH</span>
           </Link>
         </div>
@@ -98,7 +101,18 @@ export function Header({
           </Button>
 
           {user ? (
-            <UserButton afterSignOutUrl="/" />
+            isMounted ? (
+              <UserButton afterSignOutUrl="/" />
+            ) : (
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={userDisplay.imageUrl ?? ""} alt={userDisplay.name} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {userDisplay.initials}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            )
           ) : (
             <>
               <div className="hidden items-center gap-2 sm:flex">

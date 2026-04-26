@@ -69,6 +69,57 @@ export type ActivityItem = {
   createdAtLabel: string
 }
 
+export type ChatMessageItem = {
+  id: string
+  content: string
+  createdAtLabel: string
+  readByCount?: number
+  reactions?: Array<{
+    emoji: string
+    count: number
+    reactedByCurrentUser: boolean
+  }>
+  replyTo?: {
+    id: string
+    senderName: string
+    content: string
+  } | null
+  sender: {
+    id?: string | null
+    name: string
+    initials: string
+  }
+  isOwn: boolean
+}
+
+export type WorkspaceChatPanelData = {
+  workspaceId: string
+  channelId?: string | null
+  channels?: Array<{
+    id: string
+    name: string
+    description?: string | null
+    type: "GENERAL" | "DIRECT" | "GROUP" | "ANNOUNCEMENT"
+    unreadCount: number
+    memberNames?: string[]
+  }>
+  channelName: string
+  channelDescription?: string | null
+  unreadCount: number
+  messages: ChatMessageItem[]
+}
+
+export type WorkspaceInvitationItem = {
+  id: string
+  workspaceId: string
+  workspaceName: string
+  email: string
+  role: "OWNER" | "ADMIN" | "MEMBER" | "VIEWER"
+  invitedBy: string
+  createdAt: string
+  expiresAt: string
+}
+
 export type DashboardData = {
   user: AppUser | null
   recentDocuments: DocumentCardItem[]
@@ -76,4 +127,5 @@ export type DashboardData = {
   events: ScheduleEventItem[]
   upcomingTasks: TaskSummaryItem[]
   activities: ActivityItem[]
+  pendingInvitations?: WorkspaceInvitationItem[]
 }

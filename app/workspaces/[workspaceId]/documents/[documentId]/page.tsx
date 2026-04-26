@@ -1,6 +1,7 @@
 import { Header } from "@/components/header"
+import { notFound } from "next/navigation"
 import { CollaborativeEditorShell } from "@/components/editor/collaborative-editor-shell"
-import { getDashboardData } from "@/lib/data"
+import { getDashboardData, getWorkspaceDocumentData } from "@/lib/data"
 
 type DocumentEditorPageProps = {
   params: Promise<{
@@ -12,6 +13,11 @@ type DocumentEditorPageProps = {
 export default async function DocumentEditorPage({ params }: DocumentEditorPageProps) {
   const { workspaceId, documentId } = await params
   const dashboardData = await getDashboardData()
+  const documentData = await getWorkspaceDocumentData(workspaceId, documentId)
+
+  if (!documentData) {
+    notFound()
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,7 +26,8 @@ export default async function DocumentEditorPage({ params }: DocumentEditorPageP
         <CollaborativeEditorShell
           workspaceId={workspaceId}
           documentId={documentId}
-          title="Collaborative Document"
+          title={documentData.title}
+          initialContent={documentData.content}
         />
       </main>
     </div>
