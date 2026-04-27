@@ -7,14 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
   DropdownMenu,
@@ -27,17 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  ExternalLink,
-  FileText,
-  FolderOpen,
-  LayoutGrid,
-  MoreHorizontal,
-  Plus,
-  Settings,
-  UserPlus,
-  Users,
-} from "lucide-react"
+import { ExternalLink, FileText, FolderOpen, LayoutGrid, MoreHorizontal, Plus, Settings, UserPlus, Users } from "lucide-react"
 import { WorkspaceCardItem } from "@/lib/types"
 
 type WorkspacesSectionProps = {
@@ -89,30 +72,27 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Workspace của bạn</h2>
-          <p className="text-sm text-muted-foreground">Danh sách workspace thật từ backend.</p>
+          <p className="text-sm text-muted-foreground">Theo dõi các không gian làm việc, tiến độ và thành viên trong nhóm.</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Tạo Workspace
+              Tạo workspace
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Tạo Workspace mới</DialogTitle>
-              <DialogDescription>
-                Tạo nhóm làm việc để cộng tác tài liệu, task và activity log.
-              </DialogDescription>
+              <DialogTitle>Tạo workspace mới</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="workspace-name">Tên Workspace</Label>
+                <Label htmlFor="workspace-name">Tên workspace</Label>
                 <Input
                   id="workspace-name"
                   value={form.name}
                   onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-                  placeholder="VD: Team Product Development"
+                  placeholder="Ví dụ: Nhóm phát triển sản phẩm"
                 />
               </div>
               <div className="grid gap-2">
@@ -120,22 +100,16 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
                 <Textarea
                   id="workspace-desc"
                   value={form.description}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, description: event.target.value }))
-                  }
-                  placeholder="Mô tả ngắn về workspace này..."
+                  onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+                  placeholder="Mô tả ngắn về mục tiêu và phạm vi của workspace..."
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="workspace-members">
-                  Mời thành viên (email, phân tách bằng dấu phẩy)
-                </Label>
+                <Label htmlFor="workspace-members">Mời thành viên bằng email</Label>
                 <Input
                   id="workspace-members"
                   value={form.invitedEmails}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, invitedEmails: event.target.value }))
-                  }
+                  onChange={(event) => setForm((current) => ({ ...current, invitedEmails: event.target.value }))}
                   placeholder="email1@example.com, email2@example.com"
                 />
               </div>
@@ -145,7 +119,7 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
                 Hủy
               </Button>
               <Button onClick={handleCreateWorkspace} disabled={isSubmitting}>
-                {isSubmitting ? "Đang tạo..." : "Tạo"}
+                {isSubmitting ? "Đang tạo..." : "Tạo workspace"}
               </Button>
             </div>
           </DialogContent>
@@ -159,9 +133,7 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
               <FolderOpen />
             </EmptyMedia>
             <EmptyTitle>Bạn chưa có workspace nào</EmptyTitle>
-            <EmptyDescription>
-              Hãy tạo workspace đầu tiên để bật collaborative editor, task board và activity log.
-            </EmptyDescription>
+            <EmptyDescription>Tạo workspace đầu tiên để bắt đầu quản lý công việc, tài liệu và cộng tác nhóm.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Button onClick={() => setIsCreateDialogOpen(true)}>Tạo workspace</Button>
@@ -170,23 +142,15 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {workspaces.map((workspace) => {
-            const progress = workspace.tasksTotal
-              ? Math.round((workspace.tasksCompleted / workspace.tasksTotal) * 100)
-              : 0
+            const progress = workspace.tasksTotal ? Math.round((workspace.tasksCompleted / workspace.tasksTotal) * 100) : 0
 
             return (
-              <Link
-                key={workspace.id}
-                href={`/workspaces/${workspace.id}`}
-                className="block"
-              >
+              <Link key={workspace.id} href={`/workspaces/${workspace.id}`} className="block">
                 <Card className="group cursor-pointer transition-all duration-200 hover:border-primary/50 hover:shadow-md">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <div
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${workspace.color}`}
-                        >
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${workspace.color}`}>
                           <FolderOpen className="h-5 w-5 text-white" />
                         </div>
                         <div>
@@ -210,7 +174,7 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
                           <DropdownMenuItem asChild>
                             <Link href={`/workspaces/${workspace.id}`}>
                               <ExternalLink className="mr-2 h-4 w-4" />
-                              Mở Workspace
+                              Mở workspace
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
@@ -222,11 +186,8 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
                             Cài đặt
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onSelect={(event) => event.preventDefault()}
-                          >
-                            Rời khỏi Workspace
+                          <DropdownMenuItem className="text-destructive" onSelect={(event) => event.preventDefault()}>
+                            Rời khỏi workspace
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -241,7 +202,7 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
                       <div className="flex items-center gap-1.5 text-muted-foreground">
                         <LayoutGrid className="h-4 w-4" />
                         <span>
-                          {workspace.tasksCompleted}/{workspace.tasksTotal} tasks
+                          {workspace.tasksCompleted}/{workspace.tasksTotal} công việc
                         </span>
                       </div>
                     </div>
@@ -260,9 +221,7 @@ export function WorkspacesSection({ workspaces }: WorkspacesSectionProps) {
                           {workspace.members.slice(0, 4).map((member, index) => (
                             <Avatar key={`${workspace.id}-${index}`} className="h-7 w-7 border-2 border-card">
                               <AvatarImage src={member.avatar ?? ""} />
-                              <AvatarFallback className="bg-secondary text-[10px]">
-                                {member.initials}
-                              </AvatarFallback>
+                              <AvatarFallback className="bg-secondary text-[10px]">{member.initials}</AvatarFallback>
                             </Avatar>
                           ))}
                           {workspace.members.length > 4 && (

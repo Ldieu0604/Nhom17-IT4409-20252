@@ -102,15 +102,13 @@ export function CollaborativeEditorShell({
                 {saveState === "saving"
                   ? "Đang lưu..."
                   : saveState === "saved"
-                  ? "Đã lưu"
-                  : saveState === "error"
-                  ? "Lưu lỗi"
-                  : "Sẵn sàng"}
+                    ? "Đã lưu"
+                    : saveState === "error"
+                      ? "Lưu lỗi"
+                      : "Sẵn sàng"}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Bạn có thể nhập tay trực tiếp trong editor. Nội dung được tự động lưu về database.
-            </p>
+            <p className="text-sm text-muted-foreground">Nội dung sẽ được tự động lưu sau khi bạn chỉnh sửa.</p>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
@@ -122,17 +120,17 @@ export function CollaborativeEditorShell({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Tài liệu</CardTitle>
+          <CardTitle className="text-lg">Thông tin tài liệu</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="rounded-xl border p-3">
             Workspace: <span className="font-medium text-foreground">{workspaceId}</span>
           </div>
           <div className="rounded-xl border p-3">
-            Document: <span className="font-medium text-foreground">{documentId}</span>
+            Mã tài liệu: <span className="font-medium text-foreground">{documentId}</span>
           </div>
           <div className="rounded-xl border p-3">
-            Chế độ hiện tại: <span className="font-medium text-foreground">Nhập tay + autosave</span>
+            Chế độ hiện tại: <span className="font-medium text-foreground">Chỉnh sửa và tự động lưu</span>
           </div>
           <Button
             variant="outline"

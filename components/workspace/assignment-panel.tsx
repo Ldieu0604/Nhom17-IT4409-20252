@@ -73,7 +73,7 @@ export function AssignmentPanel({ workspaceId, tasks, members }: AssignmentPanel
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Badge variant="outline">{task.status}</Badge>
                     <Badge variant="secondary">{task.priority}</Badge>
-                    <Badge variant="outline">Deadline: {task.deadline}</Badge>
+                    <Badge variant="outline">Hạn hoàn thành: {task.deadline}</Badge>
                   </div>
                 </div>
 
@@ -104,7 +104,7 @@ export function AssignmentPanel({ workspaceId, tasks, members }: AssignmentPanel
           ))
         ) : (
           <div className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-            Chưa có task nào để phân công.
+            Chưa có công việc nào để phân công.
           </div>
         )}
       </CardContent>

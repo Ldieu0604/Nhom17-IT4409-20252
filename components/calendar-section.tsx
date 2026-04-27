@@ -43,9 +43,7 @@ export function CalendarSection({ events, upcomingTasks }: CalendarSectionProps)
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Lịch và công việc</h2>
-          <p className="text-sm text-muted-foreground">
-            Widget này đã sẵn sàng để bind dữ liệu thật từ task và lịch nhóm.
-          </p>
+          <p className="text-sm text-muted-foreground">Theo dõi sự kiện, deadline và công việc sắp tới của nhóm.</p>
         </div>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
@@ -98,11 +96,7 @@ export function CalendarSection({ events, upcomingTasks }: CalendarSectionProps)
                               {event.time}
                             </span>
                             <span className="flex items-center gap-1">
-                              {event.isOnline ? (
-                                <Video className="h-3.5 w-3.5" />
-                              ) : (
-                                <MapPin className="h-3.5 w-3.5" />
-                              )}
+                              {event.isOnline ? <Video className="h-3.5 w-3.5" /> : <MapPin className="h-3.5 w-3.5" />}
                               {event.location}
                             </span>
                           </div>
@@ -120,9 +114,7 @@ export function CalendarSection({ events, upcomingTasks }: CalendarSectionProps)
                             </Avatar>
                           ))}
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {event.attendees.length} người tham gia
-                        </span>
+                        <span className="text-xs text-muted-foreground">{event.attendees.length} người tham gia</span>
                       </div>
                     </div>
                   </div>
@@ -144,22 +136,16 @@ export function CalendarSection({ events, upcomingTasks }: CalendarSectionProps)
                     <Clock />
                   </EmptyMedia>
                   <EmptyTitle>Chưa có deadline</EmptyTitle>
-                  <EmptyDescription>Task có deadline sẽ xuất hiện ở đây.</EmptyDescription>
+                  <EmptyDescription>Công việc có deadline sẽ xuất hiện ở đây.</EmptyDescription>
                 </EmptyHeader>
               </Empty>
             ) : (
               <div className="space-y-3">
                 {upcomingTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="rounded-lg border p-3 transition-all hover:border-primary/50"
-                  >
+                  <div key={task.id} className="rounded-lg border p-3 transition-all hover:border-primary/50">
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <h4 className="line-clamp-2 text-sm font-medium">{task.title}</h4>
-                      <Badge
-                        variant="outline"
-                        className={`shrink-0 text-[10px] ${priorityColors[task.priority]}`}
-                      >
+                      <Badge variant="outline" className={`shrink-0 text-[10px] ${priorityColors[task.priority]}`}>
                         {priorityLabels[task.priority]}
                       </Badge>
                     </div>

@@ -22,10 +22,10 @@ type TaskBoardProps = {
 }
 
 const columns = [
-  { key: "TODO", label: "Todo" },
-  { key: "IN_PROGRESS", label: "In Progress" },
-  { key: "REVIEW", label: "Review" },
-  { key: "DONE", label: "Done" },
+  { key: "TODO", label: "Cần làm" },
+  { key: "IN_PROGRESS", label: "Đang làm" },
+  { key: "REVIEW", label: "Chờ duyệt" },
+  { key: "DONE", label: "Hoàn thành" },
 ]
 
 const nextStatusMap: Record<string, string | null> = {
@@ -35,11 +35,24 @@ const nextStatusMap: Record<string, string | null> = {
   DONE: null,
 }
 
+const nextStatusLabelMap: Record<string, string> = {
+  IN_PROGRESS: "Đang làm",
+  REVIEW: "Chờ duyệt",
+  DONE: "Hoàn thành",
+}
+
 const priorityTone: Record<string, string> = {
   LOW: "bg-chart-2/10 text-chart-2 border-chart-2/20",
   MEDIUM: "bg-chart-4/10 text-chart-4 border-chart-4/20",
   HIGH: "bg-destructive/10 text-destructive border-destructive/20",
   URGENT: "bg-destructive/10 text-destructive border-destructive/20",
+}
+
+const priorityLabelMap: Record<string, string> = {
+  LOW: "Thấp",
+  MEDIUM: "Trung bình",
+  HIGH: "Cao",
+  URGENT: "Khẩn cấp",
 }
 
 export function TaskBoard({ workspaceId, tasks }: TaskBoardProps) {
@@ -73,10 +86,10 @@ export function TaskBoard({ workspaceId, tasks }: TaskBoardProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Không thể cập nhật trạng thái task.")
+        throw new Error("Không thể cập nhật trạng thái công việc.")
       }
 
-      toast.success("Đã cập nhật trạng thái task.")
+      toast.success("Đã cập nhật trạng thái công việc.")
       router.refresh()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Có lỗi xảy ra.")
@@ -102,11 +115,11 @@ export function TaskBoard({ workspaceId, tasks }: TaskBoardProps) {
                   <p className="font-medium">{task.title}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Badge variant="outline" className={priorityTone[task.priority] ?? ""}>
-                      {task.priority}
+                      {priorityLabelMap[task.priority] ?? task.priority}
                     </Badge>
                     <Badge variant="secondary">{task.assignee}</Badge>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">Deadline: {task.deadline}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">Hạn hoàn thành: {task.deadline}</p>
                   {nextStatusMap[task.status] && (
                     <Button
                       size="sm"
@@ -117,14 +130,14 @@ export function TaskBoard({ workspaceId, tasks }: TaskBoardProps) {
                     >
                       {pendingTaskId === task.id
                         ? "Đang cập nhật..."
-                        : `Chuyển sang ${nextStatusMap[task.status]}`}
+                        : `Chuyển sang ${nextStatusLabelMap[nextStatusMap[task.status] as string]}`}
                     </Button>
                   )}
                 </div>
               ))
             ) : (
               <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
-                Chưa có task ở cột này.
+                Chưa có công việc ở cột này.
               </div>
             )}
           </CardContent>

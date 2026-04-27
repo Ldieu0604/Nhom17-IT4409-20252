@@ -1,26 +1,26 @@
 import type { Metadata } from "next"
 import { ClerkProvider } from "@clerk/nextjs"
-import { Roboto, Roboto_Mono } from "next/font/google"
+import { Be_Vietnam_Pro, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { clerkEnabled, clerkPublishableKey } from "@/lib/clerk-config"
 import "./globals.css"
 
-const roboto = Roboto({
+const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 })
 
-const robotoMono = Roboto_Mono({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "700"],
 })
 
 export const metadata: Metadata = {
-  title: "CoWorkHub | Collaborative Workspace Platform",
+  title: "CoWorkHub | Nền tảng cộng tác cho nhóm làm việc",
   description:
-    "Nền tảng cộng tác thời gian thực cho tài liệu, task, workspace và dashboard nhóm.",
+    "Nền tảng cộng tác thời gian thực cho tài liệu, công việc, workspace và bảng điều khiển nhóm.",
   generator: "Codex",
   icons: {
     icon: [
@@ -48,7 +48,7 @@ export default function RootLayout({
 }>) {
   const content = (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${roboto.className} ${robotoMono.className} font-sans antialiased`}>
+      <body className={`${beVietnamPro.className} ${jetbrainsMono.className} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           {children}
           <Toaster richColors />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { MailCheck } from "lucide-react"
 import { toast } from "sonner"
@@ -29,6 +29,33 @@ export function WorkspaceInvitationsPanel({ invitations: initialInvitations }: W
       ),
     [invitations]
   )
+
+  useEffect(() => {
+    setInvitations(initialInvitations)
+  }, [initialInvitations])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(async () => {
+      try {
+        const response = await fetch("/api/invitations/pending", {
+          cache: "no-store",
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const payload = await response.json()
+        setInvitations(payload.items ?? [])
+      } catch {
+        // silent polling
+      }
+    }, 5000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [])
 
   async function handleAccept(invitationId: string) {
     try {

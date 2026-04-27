@@ -3,7 +3,7 @@ import { vi } from "date-fns/locale"
 import { demoDashboardData, demoWorkspaceDetails } from "@/lib/demo-data"
 import { getHeaderUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { DashboardData, WorkspaceChatPanelData } from "@/lib/types"
+import { DashboardData, WorkspaceChatPanelData, WorkspaceDocumentData } from "@/lib/types"
 
 function formatRelativeDate(date: Date) {
   return formatDistanceToNowStrict(date, { addSuffix: true, locale: vi })
@@ -20,6 +20,20 @@ function getInitials(value: string) {
 
 function hasDatabaseConfigured() {
   return Boolean(process.env.DATABASE_URL)
+}
+
+function inferDocumentFormat(attachments?: Array<{ extension?: string | null }>) {
+  const extension = attachments?.[0]?.extension?.toLowerCase()
+
+  if (extension === "pdf") {
+    return "PDF" as const
+  }
+
+  if (extension === "docx") {
+    return "DOCX" as const
+  }
+
+  return "EDITOR" as const
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -56,7 +70,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const [documents, tasks, activities, pendingInvitations] = await Promise.all([
     prisma.document.findMany({
       where: { workspaceId: { in: workspaceIds }, deletedAt: null },
-      include: { workspace: true, createdBy: true },
+      include: { workspace: true, createdBy: true, attachments: { where: { deletedAt: null }, take: 1 } },
       orderBy: { updatedAt: "desc" },
       take: 6,
     }),
@@ -90,6 +104,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       id: document.id,
       title: document.title,
       type: "document" as const,
+      format: inferDocumentFormat(document.attachments),
       workspaceId: document.workspaceId,
       workspaceName: document.workspace.name,
       updatedAtLabel: formatRelativeDate(document.updatedAt),
@@ -180,7 +195,11 @@ export async function getWorkspacePageData(workspaceId: string) {
     where: { id: workspaceId },
     include: {
       members: { include: { user: true } },
-      documents: { where: { deletedAt: null }, orderBy: { updatedAt: "desc" } },
+      documents: {
+        where: { deletedAt: null },
+        include: { attachments: { where: { deletedAt: null }, take: 1 } },
+        orderBy: { updatedAt: "desc" },
+      },
       tasks: {
         where: { deletedAt: null },
         include: { assignee: true },
@@ -340,6 +359,7 @@ export async function getWorkspacePageData(workspaceId: string) {
       id: document.id,
       title: document.title,
       type: "document" as const,
+      format: inferDocumentFormat(document.attachments),
       workspaceId: workspace.id,
       workspaceName: workspace.name,
       updatedAtLabel: formatRelativeDate(document.updatedAt),
@@ -377,12 +397,12 @@ export async function getWorkspacePageData(workspaceId: string) {
   }
 }
 
-export async function getWorkspaceDocumentData(workspaceId: string, documentId: string) {
+export async function getWorkspaceDocumentData(workspaceId: string, documentId: string): Promise<WorkspaceDocumentData | null> {
   if (!hasDatabaseConfigured()) {
     return {
       id: documentId,
       workspaceId,
-      title: "Collaborative Document",
+      title: "Tài liệu cộng tác",
       content: {
         type: "doc",
         content: [
@@ -397,6 +417,9 @@ export async function getWorkspaceDocumentData(workspaceId: string, documentId: 
           },
         ],
       },
+      format: "EDITOR",
+      fileUrl: null,
+      fileName: null,
     }
   }
 
@@ -424,16 +447,35 @@ export async function getWorkspaceDocumentData(workspaceId: string, documentId: 
       workspaceId,
       deletedAt: null,
     },
+    include: {
+      attachments: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
   })
 
   if (!document) {
     return null
   }
 
+  const attachment = document.attachments?.[0] ?? null
+  const format = inferDocumentFormat(document.attachments)
+
   return {
     id: document.id,
     workspaceId: document.workspaceId,
     title: document.title,
-    content: document.content,
+    content:
+      format === "PDF"
+        ? null
+        : document.content ?? {
+          type: "doc",
+          content: [],
+        },
+    format,
+    fileUrl: attachment?.publicUrl ?? null,
+    fileName: attachment?.originalName ?? attachment?.fileName ?? null,
   }
 }

@@ -1,8 +1,9 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   ArrowRight,
   CheckCircle2,
@@ -14,20 +15,34 @@ import {
   Zap,
 } from "lucide-react"
 
+type HeroSectionProps = {
+  primaryActionHref: string
+  primaryActionLabel: string
+  secondaryActionHref: string
+  secondaryActionLabel: string
+  signedIn?: boolean
+}
+
 const onlineUsers = [
-  { name: "Nguyễn A", initials: "NA", color: "bg-primary" },
-  { name: "Trần B", initials: "TB", color: "bg-emerald-500" },
-  { name: "Lê C", initials: "LC", color: "bg-orange-500" },
-  { name: "Phạm D", initials: "PD", color: "bg-violet-500" },
+  { name: "Nguyễn An", initials: "NA", color: "bg-primary" },
+  { name: "Trần Bình", initials: "TB", color: "bg-emerald-500" },
+  { name: "Lê Chi", initials: "LC", color: "bg-orange-500" },
+  { name: "Phạm Duy", initials: "PD", color: "bg-violet-500" },
 ]
 
 const quickStats = [
-  { icon: Zap, text: "Đồng bộ theo thời gian thực" },
-  { icon: Users, text: "Làm việc nhóm trên cùng một tài liệu" },
-  { icon: MessageSquareText, text: "Bình luận và trao đổi ngay trong workspace" },
+  { icon: Zap, text: "Đồng bộ thay đổi theo thời gian thực" },
+  { icon: Users, text: "Làm việc nhóm trên cùng tài liệu và bảng việc" },
+  { icon: MessageSquareText, text: "Trao đổi và phản hồi ngay trong workspace" },
 ]
 
-export function HeroSection() {
+export function HeroSection({
+  primaryActionHref,
+  primaryActionLabel,
+  secondaryActionHref,
+  secondaryActionLabel,
+  signedIn = false,
+}: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden py-12 md:py-20">
       <div className="pointer-events-none absolute inset-0 -z-10">
@@ -43,29 +58,33 @@ export function HeroSection() {
             className="mb-5 gap-2 rounded-full px-4 py-2 text-sm font-medium"
           >
             <Sparkles className="h-4 w-4 text-primary" />
-            Giải pháp cộng tác cho nhóm dự án hiện đại
+            {signedIn
+              ? "Không gian làm việc cá nhân hóa cho nhóm của bạn"
+              : "Nền tảng cộng tác hiện đại cho nhóm dự án"}
           </Badge>
 
           <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-            Viết, giao việc và trao đổi
+            {signedIn ? "Theo dõi toàn bộ công việc" : "Viết, giao việc và trao đổi"}
             <span className="block text-primary">
-              trong cùng một workspace
+              {signedIn ? "ngay từ trang chủ" : "trong cùng một workspace"}
             </span>
           </h1>
 
           <p className="mt-6 max-w-2xl text-pretty text-lg leading-8 text-muted-foreground md:text-xl">
-            CoWorkHub giúp nhóm của bạn cộng tác trên tài liệu, bảng việc làm,
-            lịch và trò chuyện theo thời gian thực. Mọi thay đổi được cập nhật
-            ngay lập tức, rõ ràng và trực quan.
+            {signedIn
+              ? "Bạn có thể mở workspace, xem tài liệu mới cập nhật, kiểm tra lời mời đang chờ và tiếp tục trao đổi với nhóm mà không cần đi qua màn hình mô phỏng."
+              : "CoWorkHub giúp nhóm của bạn quản lý công việc, cộng tác trên tài liệu, theo dõi tiến độ và trò chuyện theo thời gian thực trong một không gian làm việc thống nhất, rõ ràng và dễ theo dõi."}
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" className="gap-2 px-8">
-              Trải nghiệm ngay
-              <ArrowRight className="h-4 w-4" />
+            <Button size="lg" className="gap-2 px-8" asChild>
+              <Link href={primaryActionHref}>
+                {primaryActionLabel}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" className="px-8">
-              Xem mô phỏng hệ thống
+            <Button size="lg" variant="outline" className="px-8" asChild>
+              <Link href={secondaryActionHref}>{secondaryActionLabel}</Link>
             </Button>
           </div>
 
@@ -88,7 +107,7 @@ export function HeroSection() {
                 4 thành viên đang cộng tác
               </p>
               <p className="text-sm text-muted-foreground">
-                Cập nhật trực tiếp, không cần tải lại trang
+                Cập nhật tức thì, không cần tải lại trang
               </p>
             </div>
           </div>
@@ -127,7 +146,7 @@ export function HeroSection() {
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-sm font-semibold">Team Alpha</h3>
                   <Badge variant="secondary" className="text-[10px]">
-                    Live
+                    Trực tiếp
                   </Badge>
                 </div>
 
@@ -136,7 +155,7 @@ export function HeroSection() {
                     Tài liệu dự án
                   </div>
                   <div className="rounded-xl px-3 py-2 text-sm text-muted-foreground hover:bg-muted">
-                    Kanban công việc
+                    Bảng công việc
                   </div>
                   <div className="rounded-xl px-3 py-2 text-sm text-muted-foreground hover:bg-muted">
                     Lịch sprint
@@ -147,9 +166,7 @@ export function HeroSection() {
                 </div>
 
                 <div className="mt-6 rounded-2xl border bg-muted/40 p-3">
-                  <p className="text-xs font-medium text-foreground">
-                    Tiến độ sprint
-                  </p>
+                  <p className="text-xs font-medium text-foreground">Tiến độ sprint</p>
                   <div className="mt-3 h-2 rounded-full bg-muted">
                     <div className="h-2 w-[72%] rounded-full bg-primary" />
                   </div>
@@ -176,37 +193,38 @@ export function HeroSection() {
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                       </span>
-                      4 người đang online
+                      4 người đang trực tuyến
                     </div>
                   </div>
 
                   <div className="relative mt-5 space-y-4 text-sm leading-7 text-muted-foreground">
                     <p>
                       Mục tiêu của sprint này là hoàn thiện giao diện workspace,
-                      khu vực tài liệu cộng tác và luồng quản lý nhiệm vụ cho
-                      nhóm người dùng.
+                      khu vực tài liệu cộng tác và luồng quản lý công việc để nhóm
+                      có thể theo dõi tiến độ một cách trực quan hơn.
                     </p>
                     <p>
-                      Nhóm cần ưu tiên trải nghiệm thời gian thực, hiển thị rõ
-                      người đang hoạt động, cập nhật thay đổi tức thời và dễ
-                      theo dõi tiến độ công việc.
+                      Ưu tiên của nhóm là cảm giác làm việc theo thời gian thực:
+                      ai đang hoạt động, ai vừa cập nhật tài liệu, và công việc nào
+                      vừa thay đổi trạng thái đều phải hiển thị rõ và gần như tức thì.
                     </p>
                     <p>
-                      Ngoài ra, cần chuẩn bị một bản demo trực quan để người xem
-                      có thể cảm nhận ngay cách hệ thống hỗ trợ làm việc nhóm.
+                      Ngoài phần chức năng, sản phẩm cần giữ được cảm giác chuyên
+                      nghiệp, thống nhất và dễ dùng ngay cả khi số lượng tài liệu,
+                      thành viên và cuộc trò chuyện tăng lên.
                     </p>
 
                     <div className="absolute left-[38%] top-[18%] flex items-start">
                       <MousePointer2 className="h-4 w-4 -rotate-12 fill-primary text-primary" />
                       <span className="ml-1 rounded bg-primary px-1.5 py-0.5 text-[10px] text-primary-foreground">
-                        Nguyễn A
+                        Nguyễn An
                       </span>
                     </div>
 
                     <div className="absolute right-[18%] top-[52%] flex items-start">
                       <MousePointer2 className="h-4 w-4 -rotate-12 fill-emerald-500 text-emerald-500" />
                       <span className="ml-1 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] text-white">
-                        Trần B
+                        Trần Bình
                       </span>
                     </div>
 
@@ -214,12 +232,10 @@ export function HeroSection() {
                       <div className="flex items-start gap-2">
                         <MessageSquareText className="mt-0.5 h-4 w-4" />
                         <div>
-                          <p className="text-xs font-semibold">
-                            Bình luận mới từ Lê C
-                          </p>
+                          <p className="text-xs font-semibold">Bình luận mới từ Lê Chi</p>
                           <p className="text-xs">
-                            “Cần nhấn mạnh phần realtime collaboration trong
-                            trang chủ để bài thuyết trình thuyết phục hơn.”
+                            “Nên nhấn mạnh thêm phần cộng tác thời gian thực trên
+                            trang chủ để người xem cảm nhận được khác biệt của hệ thống.”
                           </p>
                         </div>
                       </div>
@@ -237,15 +253,15 @@ export function HeroSection() {
                     <div className="space-y-3 text-xs text-muted-foreground">
                       <div className="flex items-start gap-2">
                         <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 text-emerald-500" />
-                        <span>Phạm D vừa cập nhật deadline cho Sprint 4</span>
+                        <span>Phạm Duy vừa cập nhật hạn hoàn thành cho Sprint 4</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 text-emerald-500" />
-                        <span>Nguyễn A đã chỉnh sửa tài liệu mô tả hệ thống</span>
+                        <span>Nguyễn An đã chỉnh sửa tài liệu mô tả hệ thống</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 text-emerald-500" />
-                        <span>Trần B chuyển task UI Dashboard sang Done</span>
+                        <span>Trần Bình chuyển công việc giao diện sang hoàn thành</span>
                       </div>
                     </div>
                   </div>
@@ -258,19 +274,15 @@ export function HeroSection() {
 
                     <div className="space-y-3 text-xs text-muted-foreground">
                       <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
-                        <span>Workspace Sync</span>
-                        <span className="font-medium text-emerald-600">
-                          Stable
-                        </span>
+                        <span>Đồng bộ workspace</span>
+                        <span className="font-medium text-emerald-600">Ổn định</span>
                       </div>
                       <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
-                        <span>Document Auto-save</span>
-                        <span className="font-medium text-emerald-600">
-                          Every 5s
-                        </span>
+                        <span>Tự động lưu tài liệu</span>
+                        <span className="font-medium text-emerald-600">Mỗi 5 giây</span>
                       </div>
                       <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
-                        <span>Task Progress</span>
+                        <span>Tiến độ công việc</span>
                         <span className="font-medium text-primary">72%</span>
                       </div>
                     </div>
@@ -281,18 +293,14 @@ export function HeroSection() {
           </div>
 
           <div className="absolute -bottom-4 -left-4 hidden rounded-2xl border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:block">
-            <p className="text-xs font-semibold text-foreground">
-              Auto-save thành công
-            </p>
+            <p className="text-xs font-semibold text-foreground">Tự động lưu thành công</p>
             <p className="text-xs text-muted-foreground">Vừa cập nhật 2 giây trước</p>
           </div>
 
           <div className="absolute -right-4 top-10 hidden rounded-2xl border bg-background/95 px-4 py-3 shadow-lg backdrop-blur md:block">
-            <p className="text-xs font-semibold text-foreground">
-              3 bình luận chưa đọc
-            </p>
+            <p className="text-xs font-semibold text-foreground">3 bình luận chưa đọc</p>
             <p className="text-xs text-muted-foreground">
-              Tập trung vào phần demo realtime
+              Cần xem phần demo cộng tác thời gian thực
             </p>
           </div>
         </div>

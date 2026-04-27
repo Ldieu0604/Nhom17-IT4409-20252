@@ -21,15 +21,25 @@ type RecentDocumentsProps = {
   documents: DocumentCardItem[]
 }
 
+function getFormatLabel(format?: DocumentCardItem["format"]) {
+  if (format === "PDF") {
+    return "PDF"
+  }
+
+  if (format === "DOCX") {
+    return "DOCX"
+  }
+
+  return "Tài liệu"
+}
+
 export function RecentDocuments({ documents }: RecentDocumentsProps) {
   const [starredDocs, setStarredDocs] = useState<string[]>(
     documents.filter((document) => document.isStarred).map((document) => document.id)
   )
 
   const toggleStar = (id: string) => {
-    setStarredDocs((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    )
+    setStarredDocs((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]))
   }
 
   return (
@@ -38,7 +48,7 @@ export function RecentDocuments({ documents }: RecentDocumentsProps) {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Tài liệu gần đây</h2>
           <p className="text-sm text-muted-foreground">
-            Danh sách tài liệu thật lấy từ workspace của bạn.
+            Các tài liệu được cập nhật gần nhất trong không gian làm việc của bạn.
           </p>
         </div>
         <Button variant="outline" size="sm" asChild>
@@ -54,12 +64,12 @@ export function RecentDocuments({ documents }: RecentDocumentsProps) {
             </EmptyMedia>
             <EmptyTitle>Chưa có tài liệu nào</EmptyTitle>
             <EmptyDescription>
-              Hãy tạo workspace hoặc document đầu tiên để bắt đầu cộng tác.
+              Tạo tài liệu đầu tiên để bắt đầu cộng tác cùng nhóm.
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <Button asChild>
-              <Link href="/dashboard#workspaces">Tạo workspace</Link>
+              <Link href="/dashboard#workspaces">Mở workspace</Link>
             </Button>
           </EmptyContent>
         </Empty>
@@ -69,10 +79,7 @@ export function RecentDocuments({ documents }: RecentDocumentsProps) {
             const isStarred = starredDocs.includes(doc.id)
 
             return (
-              <Card
-                key={doc.id}
-                className="group transition-all duration-200 hover:border-primary/50 hover:shadow-md"
-              >
+              <Card key={doc.id} className="group transition-all duration-200 hover:border-primary/50 hover:shadow-md">
                 <CardHeader className="flex flex-row items-start justify-between pb-2">
                   <div className="flex items-start gap-3">
                     <div className="rounded-lg bg-primary/10 p-2">
@@ -80,16 +87,13 @@ export function RecentDocuments({ documents }: RecentDocumentsProps) {
                     </div>
                     <div className="space-y-1">
                       <CardTitle className="line-clamp-1 text-base font-semibold">
-                        <Link
-                          href={`/workspaces/${doc.workspaceId}/documents/${doc.id}`}
-                          className="hover:text-primary"
-                        >
+                        <Link href={`/workspaces/${doc.workspaceId}/documents/${doc.id}`} className="hover:text-primary">
                           {doc.title}
                         </Link>
                       </CardTitle>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
-                          Tài liệu
+                          {getFormatLabel(doc.format)}
                         </Badge>
                         <span className="text-xs text-muted-foreground">{doc.workspaceName}</span>
                       </div>
@@ -97,11 +101,7 @@ export function RecentDocuments({ documents }: RecentDocumentsProps) {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                      >
+                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -140,9 +140,7 @@ export function RecentDocuments({ documents }: RecentDocumentsProps) {
                         {doc.collaborators.slice(0, 3).map((collaborator, index) => (
                           <Avatar key={`${doc.id}-${index}`} className="h-6 w-6 border-2 border-card">
                             <AvatarImage src={collaborator.avatar ?? ""} />
-                            <AvatarFallback className="bg-secondary text-[10px]">
-                              {collaborator.initials}
-                            </AvatarFallback>
+                            <AvatarFallback className="bg-secondary text-[10px]">{collaborator.initials}</AvatarFallback>
                           </Avatar>
                         ))}
                         {doc.collaborators.length > 3 && (
@@ -151,9 +149,7 @@ export function RecentDocuments({ documents }: RecentDocumentsProps) {
                           </div>
                         )}
                       </div>
-                      {isStarred && (
-                        <Star className="ml-2 h-4 w-4 fill-chart-4 text-chart-4" />
-                      )}
+                      {isStarred && <Star className="ml-2 h-4 w-4 fill-chart-4 text-chart-4" />}
                     </div>
                   </div>
                 </CardContent>

@@ -1,82 +1,82 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.55 0.2 160);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.95 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.65 0.18 145);
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.90 0 0);
-  --input: oklch(0.92 0 0);
-  --ring: oklch(0.55 0.2 160);
-  --chart-1: oklch(0.55 0.2 160);
-  --chart-2: oklch(0.65 0.18 145);
-  --chart-3: oklch(0.5 0.15 200);
-  --chart-4: oklch(0.7 0.15 80);
-  --chart-5: oklch(0.6 0.2 30);
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2ff;
+  --secondary-foreground: #312e81;
+  --muted: #e2e8f0;
+  --muted-foreground: #475569;
+  --accent: #d1fae5;
+  --accent-foreground: #065f46;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #4f46e5;
+  --chart-1: #4f46e5;
+  --chart-2: #818cf8;
+  --chart-3: #34d399;
+  --chart-4: #ff7f50;
+  --chart-5: #94a3b8;
   --radius: 0.75rem;
-  --sidebar: oklch(0.12 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.55 0.2 160);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.2 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.25 0 0);
-  --sidebar-ring: oklch(0.55 0.2 160);
+  --sidebar: #1e1b4b;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #4f46e5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #312e81;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #4338ca;
+  --sidebar-ring: #4f46e5;
 }
 
 .dark {
-  --background: oklch(0.1 0 0);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.14 0 0);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.14 0 0);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.6 0.2 160);
-  --primary-foreground: oklch(0.05 0 0);
-  --secondary: oklch(0.2 0 0);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.2 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.65 0.18 145);
-  --accent-foreground: oklch(0.05 0 0);
-  --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.25 0 0);
-  --input: oklch(0.2 0 0);
-  --ring: oklch(0.6 0.2 160);
-  --chart-1: oklch(0.6 0.2 160);
-  --chart-2: oklch(0.65 0.18 145);
-  --chart-3: oklch(0.55 0.15 200);
-  --chart-4: oklch(0.7 0.15 80);
-  --chart-5: oklch(0.6 0.2 30);
-  --sidebar: oklch(0.08 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.6 0.2 160);
-  --sidebar-primary-foreground: oklch(0.05 0 0);
-  --sidebar-accent: oklch(0.18 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.22 0 0);
-  --sidebar-ring: oklch(0.6 0.2 160);
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #111827;
+  --card-foreground: #f8fafc;
+  --popover: #111827;
+  --popover-foreground: #f8fafc;
+  --primary: #818cf8;
+  --primary-foreground: #0f172a;
+  --secondary: #1f2937;
+  --secondary-foreground: #eef2ff;
+  --muted: #1f2937;
+  --muted-foreground: #94a3b8;
+  --accent: #134e4a;
+  --accent-foreground: #d1fae5;
+  --destructive: #f87171;
+  --destructive-foreground: #0f172a;
+  --border: #273449;
+  --input: #273449;
+  --ring: #818cf8;
+  --chart-1: #818cf8;
+  --chart-2: #a5b4fc;
+  --chart-3: #34d399;
+  --chart-4: #ff7f50;
+  --chart-5: #94a3b8;
+  --sidebar: #0b1120;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #818cf8;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #1f2937;
+  --sidebar-accent-foreground: #eef2ff;
+  --sidebar-border: #312e81;
+  --sidebar-ring: #818cf8;
 }
 
 @theme inline {
-  --font-sans: 'Roboto', sans-serif;
-  --font-mono: 'Roboto Mono', monospace;
+  --font-sans: "Be Vietnam Pro", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -119,7 +119,83 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(79, 70, 229, 0.12) 0, transparent 26rem),
+      radial-gradient(circle at top right, rgba(52, 211, 153, 0.1) 0, transparent 22rem),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(248, 250, 252, 0.98));
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight text-slate-900 dark:text-slate-50;
+  }
+
+  ::selection {
+    background: rgba(79, 70, 229, 0.18);
+    color: var(--foreground);
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply relative;
+  }
+
+  .section-shell {
+    @apply rounded-[1.25rem] border border-slate-200/80 bg-white/88 shadow-[0_16px_38px_-24px_rgba(15,23,42,0.16)] backdrop-blur-xl;
+  }
+
+  .glass-card {
+    @apply rounded-[12px] border border-slate-200/80 bg-white shadow-[0_10px_24px_-18px_rgba(15,23,42,0.16)] backdrop-blur-lg transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    @apply -translate-y-0.5 border-indigo-200 shadow-[0_18px_34px_-20px_rgba(79,70,229,0.2)];
+  }
+
+  .accent-orb {
+    @apply pointer-events-none absolute rounded-full blur-3xl;
+  }
+
+  .soft-grid {
+    background-image:
+      linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .animated-sheen {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .animated-sheen::after {
+    content: "";
+    position: absolute;
+    inset: -120% auto -120% -40%;
+    width: 32%;
+    transform: rotate(12deg);
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.52), transparent);
+    animation: sheen-pass 8s ease-in-out infinite;
+  }
+}
+
+@keyframes sheen-pass {
+  0%,
+  100% {
+    transform: translateX(-160%) rotate(12deg);
+  }
+  50% {
+    transform: translateX(460%) rotate(12deg);
   }
 }

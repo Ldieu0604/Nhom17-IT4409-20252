@@ -174,14 +174,6 @@ export function ChatPanel(props: ChatPanelProps) {
   const socketRef = useRef<Socket | null>(null)
   const joinedChannelIdsRef = useRef<Set<string>>(new Set())
 
-  const buttonBadgeCount = useMemo(() => {
-    if (mode === "activity") {
-      return props.activities?.length ?? 0
-    }
-
-    return channels.reduce((sum, channel) => sum + (channel.unreadCount ?? 0), 0)
-  }, [channels, mode, props.activities])
-
   const groupedChannels = useMemo(() => {
     const groupItems = channels.filter((channel) => channel.type !== "DIRECT")
     const directItems = channels.filter((channel) => channel.type === "DIRECT")
@@ -199,6 +191,20 @@ export function ChatPanel(props: ChatPanelProps) {
 
     void refreshChannels()
   }, [mode])
+
+  useEffect(() => {
+    if (mode !== "chat" || !isOpen || !selectedChannelId) {
+      return
+    }
+
+    const intervalId = window.setInterval(() => {
+      void refreshMessages(selectedChannelId, true)
+    }, 4000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [isOpen, mode, selectedChannelId])
 
   useEffect(() => {
     if (!isOpen || mode !== "chat") {
@@ -622,11 +628,6 @@ export function ChatPanel(props: ChatPanelProps) {
       <SheetTrigger asChild>
         <Button size="icon" className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg">
           <MessageCircle className="h-6 w-6" />
-          {buttonBadgeCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
-              {buttonBadgeCount}
-            </span>
-          )}
         </Button>
       </SheetTrigger>
 
@@ -767,7 +768,7 @@ export function ChatPanel(props: ChatPanelProps) {
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Badge variant="secondary">
-                    {onlineUsers.filter((entry) => entry.isOnline !== false).length} đang online
+                    {onlineUsers.filter((entry) => entry.isOnline !== false).length} đang trực tuyến
                   </Badge>
                   {onlineUsers.slice(0, 6).map((entry) => (
                     <Badge key={entry.user.id ?? entry.socketId} variant="outline" className="gap-1">
@@ -779,7 +780,7 @@ export function ChatPanel(props: ChatPanelProps) {
                       {entry.user.name} •{" "}
                       {entry.isOnline === false && entry.lastSeenAt
                         ? formatPresenceTime(new Date(entry.lastSeenAt))
-                        : "online"}
+                        : "trực tuyến"}
                     </Badge>
                   ))}
                 </div>
@@ -929,7 +930,7 @@ export function ChatPanel(props: ChatPanelProps) {
                         <p className="text-sm font-medium">{activity.actor}</p>
                         <Badge variant="secondary" className="text-[10px]">
                           <Circle className="mr-1 h-2.5 w-2.5 fill-primary text-primary" />
-                          live
+                          trực tiếp
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{activity.action}</p>

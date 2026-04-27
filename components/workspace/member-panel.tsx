@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useState } from "react"
+import { FormEvent, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { UserPlus, Users } from "lucide-react"
 import { toast } from "sonner"
@@ -64,6 +64,38 @@ export function MemberPanel({
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const canManageMembers = currentUserRole === "OWNER" || currentUserRole === "ADMIN"
+
+  useEffect(() => {
+    setMembers(initialMembers)
+  }, [initialMembers])
+
+  useEffect(() => {
+    setInvitations(initialInvitations)
+  }, [initialInvitations])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(async () => {
+      try {
+        const response = await fetch(`/api/workspaces/${workspaceId}/members`, {
+          cache: "no-store",
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const payload = await response.json()
+        setMembers(payload.members ?? [])
+        setInvitations(payload.invitations ?? [])
+      } catch {
+        // silent polling
+      }
+    }, 5000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [workspaceId])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

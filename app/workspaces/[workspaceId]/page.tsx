@@ -29,7 +29,13 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header user={dashboardData.user} />
+      <Header
+        user={dashboardData.user}
+        notificationCount={
+          workspaceData.activities.length +
+          (workspaceData.chat.channels?.reduce((sum, channel) => sum + (channel.unreadCount ?? 0), 0) ?? 0)
+        }
+      />
       <main className="container mx-auto space-y-8 px-4 py-8">
         <section className="rounded-3xl border bg-card p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -39,7 +45,7 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
               <p className="mt-3 max-w-3xl text-muted-foreground">{workspaceData.workspace.description}</p>
               <div className="mt-4 flex flex-wrap gap-2 text-sm text-muted-foreground">
                 <span>{workspaceData.workspace.documentsCount} tài liệu</span>
-                <span>{workspaceData.workspace.tasksTotal} tasks</span>
+                <span>{workspaceData.workspace.tasksTotal} công việc</span>
                 <span>{workspaceData.workspace.members.length} thành viên</span>
               </div>
             </div>

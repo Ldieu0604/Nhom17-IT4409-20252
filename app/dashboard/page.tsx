@@ -11,32 +11,38 @@ export default async function DashboardPage() {
   const data = await getDashboardData()
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header user={data.user} />
+    <div className="app-shell min-h-screen bg-background">
+      <div className="accent-orb left-[-7rem] top-[8rem] h-56 w-56 bg-primary/18" />
+      <div className="accent-orb right-[-5rem] top-[18rem] h-64 w-64 bg-chart-2/14" />
+
+      <Header user={data.user} notificationCount={data.activities.length} />
+
       <main className="container mx-auto space-y-8 px-4 py-8">
-        <section className="grid gap-6 rounded-3xl border bg-card p-6 md:grid-cols-[1.2fr_0.8fr]">
+        <section className="section-shell grid gap-6 p-6 md:grid-cols-[1.2fr_0.8fr]">
           <div>
-            <p className="text-sm font-medium text-primary">Workspace Dashboard</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight">
-              Chào {data.user?.name ?? "bạn"}, đây là hệ thống thật của nhóm
+            <p className="text-sm font-semibold text-primary">Bảng điều khiển workspace</p>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">
+              Chào {data.user?.name ?? "bạn"}, đây là không gian làm việc của nhóm
             </h1>
-            <p className="mt-3 max-w-2xl text-muted-foreground">
-              Dashboard này đang dùng cùng UI với landing demo, nhưng dữ liệu đã đi qua lớp server.
-              Khi cấu hình MySQL + Clerk, các widget sẽ tự lấy dữ liệu thực từ Prisma.
+            <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground">
+              Tại đây bạn có thể theo dõi workspace, tài liệu, công việc sắp tới, lời
+              mời tham gia và các hoạt động gần đây trong một giao diện sáng, rõ ràng
+              và tối ưu cho làm việc hằng ngày.
             </p>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border bg-background p-4">
-              <p className="text-sm text-muted-foreground">Workspaces</p>
-              <p className="mt-2 text-3xl font-bold">{data.workspaces.length}</p>
+            <div className="glass-card p-4">
+              <p className="text-sm text-muted-foreground">Workspace</p>
+              <p className="mt-2 text-3xl font-extrabold">{data.workspaces.length}</p>
             </div>
-            <div className="rounded-2xl border bg-background p-4">
-              <p className="text-sm text-muted-foreground">Documents</p>
-              <p className="mt-2 text-3xl font-bold">{data.recentDocuments.length}</p>
+            <div className="glass-card p-4">
+              <p className="text-sm text-muted-foreground">Tài liệu</p>
+              <p className="mt-2 text-3xl font-extrabold">{data.recentDocuments.length}</p>
             </div>
-            <div className="rounded-2xl border bg-background p-4">
-              <p className="text-sm text-muted-foreground">Upcoming tasks</p>
-              <p className="mt-2 text-3xl font-bold">{data.upcomingTasks.length}</p>
+            <div className="glass-card p-4">
+              <p className="text-sm text-muted-foreground">Công việc sắp tới</p>
+              <p className="mt-2 text-3xl font-extrabold">{data.upcomingTasks.length}</p>
             </div>
           </div>
         </section>
@@ -50,6 +56,7 @@ export default async function DashboardPage() {
           <ActivityFeed activities={data.activities} />
         </div>
       </main>
+
       <ChatPanel activities={data.activities} />
     </div>
   )

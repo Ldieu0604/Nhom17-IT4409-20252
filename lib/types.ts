@@ -11,6 +11,7 @@ export type DocumentCardItem = {
   id: string
   title: string
   type: "document"
+  format?: "DOCX" | "PDF" | "EDITOR"
   workspaceId: string
   workspaceName: string
   updatedAtLabel: string
@@ -128,4 +129,14 @@ export type DashboardData = {
   upcomingTasks: TaskSummaryItem[]
   activities: ActivityItem[]
   pendingInvitations?: WorkspaceInvitationItem[]
+}
+
+export type WorkspaceDocumentData = {
+  id: string
+  workspaceId: string
+  title: string
+  content: any
+  format: "DOCX" | "PDF" | "EDITOR"
+  fileUrl?: string | null
+  fileName?: string | null
 }

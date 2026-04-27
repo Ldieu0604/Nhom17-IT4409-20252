@@ -10,7 +10,7 @@ type AuthShellProps = {
 }
 
 const bullets = [
-  "Đăng nhập một lần, truy cập dashboard và workspace của nhóm.",
+  "Đăng nhập một lần, truy cập bảng điều khiển và workspace của nhóm.",
   "Tài khoản Clerk được đồng bộ sang User nội bộ để dùng với Prisma.",
   "Sẵn sàng bảo vệ route cho dashboard, editor và API riêng của hệ thống.",
 ]
@@ -33,19 +33,17 @@ export function AuthShell({ mode, children }: AuthShellProps) {
                 Quay lại trang chủ
               </Link>
 
-              <Badge className="mt-10 bg-primary text-primary-foreground">
-                Collaborative Workspace
-              </Badge>
+              <Badge className="mt-10 bg-primary text-primary-foreground">Không gian làm việc cộng tác</Badge>
 
               <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight">
                 {isSignIn
-                  ? "Đăng nhập để tiếp tục vào dashboard cộng tác của nhóm."
-                  : "Tạo tài khoản để bắt đầu workspace, task board và editor realtime."}
+                  ? "Đăng nhập để tiếp tục vào bảng điều khiển cộng tác của nhóm."
+                  : "Tạo tài khoản để bắt đầu workspace, bảng công việc và trình soạn thảo realtime."}
               </h1>
 
               <p className="mt-5 max-w-xl text-base leading-7 text-sidebar-foreground/75">
-                Luồng xác thực này dùng Clerk để quản lý tài khoản, session và bảo vệ route.
-                Sau khi đăng nhập, người dùng được nối sang hệ thống dữ liệu nội bộ bằng Prisma.
+                Luồng xác thực này dùng Clerk để quản lý tài khoản, session và bảo vệ route. Sau khi đăng nhập, người
+                dùng được nối sang hệ thống dữ liệu nội bộ bằng Prisma.
               </p>
             </div>
 
@@ -64,15 +62,15 @@ export function AuthShell({ mode, children }: AuthShellProps) {
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/20 p-4">
                   <ShieldCheck className="h-5 w-5 text-primary" />
-                  <p className="mt-3 text-sm font-medium">Route Protection</p>
+                  <p className="mt-3 text-sm font-medium">Bảo vệ route</p>
                 </div>
                 <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/20 p-4">
                   <Users className="h-5 w-5 text-primary" />
-                  <p className="mt-3 text-sm font-medium">Workspace Access</p>
+                  <p className="mt-3 text-sm font-medium">Truy cập workspace</p>
                 </div>
                 <div className="rounded-2xl border border-sidebar-border bg-sidebar-accent/20 p-4">
                   <Zap className="h-5 w-5 text-primary" />
-                  <p className="mt-3 text-sm font-medium">Realtime Ready</p>
+                  <p className="mt-3 text-sm font-medium">Sẵn sàng realtime</p>
                 </div>
               </div>
             </div>
@@ -90,9 +88,7 @@ export function AuthShell({ mode, children }: AuthShellProps) {
                 Quay lại
               </Link>
               <Button variant="outline" asChild>
-                <Link href={isSignIn ? "/sign-up" : "/sign-in"}>
-                  {isSignIn ? "Đăng ký" : "Đăng nhập"}
-                </Link>
+                <Link href={isSignIn ? "/sign-up" : "/sign-in"}>{isSignIn ? "Đăng ký" : "Đăng nhập"}</Link>
               </Button>
             </div>
             {children}

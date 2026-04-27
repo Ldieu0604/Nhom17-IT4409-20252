@@ -1,38 +1,80 @@
+import { randomUUID } from "node:crypto"
+import { mkdir, writeFile } from "node:fs/promises"
+import path from "node:path"
+import mammoth from "mammoth"
 import { NextResponse } from "next/server"
-import { z } from "zod"
 import { DocumentStatus } from "@prisma/client"
 import { getOrCreateAppUser } from "@/lib/auth"
 import { logActivity } from "@/lib/activity"
 import { assertWorkspaceAccess } from "@/lib/permissions"
 import { prisma } from "@/lib/prisma"
 
-const createDocumentSchema = z.object({
-  title: z.string().min(1, "Tiêu đề tài liệu là bắt buộc."),
-  initialText: z.string().optional(),
-})
+const allowedExtensions = new Set(["pdf", "docx"])
 
-function textToTiptapDoc(text?: string) {
-  const normalized = (text ?? "").trim()
-
-  if (!normalized) {
-    return {
-      type: "doc",
-      content: [],
-    }
-  }
-
+function createEmptyDoc() {
   return {
     type: "doc",
-    content: normalized.split(/\n{2,}/).map((paragraph) => ({
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: paragraph,
-        },
-      ],
-    })),
+    content: [],
   }
+}
+
+function inferMimeType(extension: string) {
+  if (extension === "pdf") {
+    return "application/pdf"
+  }
+
+  return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+}
+
+function sanitizeBaseName(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toLowerCase()
+}
+
+async function saveUploadedFile(file: File, extension: string) {
+  const arrayBuffer = await file.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  const uploadDir = path.join(process.cwd(), "public", "uploads", "documents")
+  const safeName = sanitizeBaseName(file.name.replace(/\.[^.]+$/, "")) || "tai-lieu"
+  const fileName = `${Date.now()}-${randomUUID()}-${safeName}.${extension}`
+
+  await mkdir(uploadDir, { recursive: true })
+  await writeFile(path.join(uploadDir, fileName), buffer)
+
+  return {
+    buffer,
+    storedFileName: fileName,
+    publicUrl: `/uploads/documents/${fileName}`,
+  }
+}
+
+async function docxToInitialContent(buffer: Buffer) {
+  const result = await mammoth.convertToHtml({ buffer })
+  const html = result.value?.trim()
+
+  if (!html) {
+    return createEmptyDoc()
+  }
+
+  return html
+}
+
+function inferDocumentFormat(extension?: string | null) {
+  const normalized = extension?.toLowerCase()
+
+  if (normalized === "pdf") {
+    return "PDF" as const
+  }
+
+  if (normalized === "docx") {
+    return "DOCX" as const
+  }
+
+  return "EDITOR" as const
 }
 
 type RouteContext = {
@@ -57,10 +99,41 @@ export async function GET(_: Request, { params }: RouteContext) {
 
   const items = await prisma.document.findMany({
     where: { workspaceId },
+    include: {
+      attachments: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+      createdBy: true,
+      workspace: true,
+    },
     orderBy: { updatedAt: "desc" },
   })
 
-  return NextResponse.json({ items })
+  return NextResponse.json({
+    items: items.map((document) => ({
+      id: document.id,
+      title: document.title,
+      type: "document",
+      format: inferDocumentFormat(document.attachments[0]?.extension),
+      workspaceId: document.workspaceId,
+      workspaceName: document.workspace.name,
+      updatedAtLabel: document.updatedAt.toISOString(),
+      isStarred: false,
+      collaborators: [
+        {
+          name: document.createdBy.name ?? document.createdBy.email,
+          initials: (document.createdBy.name ?? document.createdBy.email)
+            .split(" ")
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0]?.toUpperCase() ?? "")
+            .join(""),
+        },
+      ],
+    })),
+  })
 }
 
 export async function POST(request: Request, { params }: RouteContext) {
@@ -71,23 +144,35 @@ export async function POST(request: Request, { params }: RouteContext) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
   }
 
-  const body = await request.json()
-  const parsed = createDocumentSchema.safeParse(body)
+  const formData = await request.formData()
+  const title = `${formData.get("title") ?? ""}`.trim()
+  const uploadedFile = formData.get("file")
 
-  if (!parsed.success) {
-    return NextResponse.json(
-      { message: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ." },
-      { status: 400 }
-    )
+  if (!title) {
+    return NextResponse.json({ message: "Tiêu đề tài liệu là bắt buộc." }, { status: 400 })
   }
+
+  if (!(uploadedFile instanceof File)) {
+    return NextResponse.json({ message: "Bạn cần chọn file PDF hoặc DOCX." }, { status: 400 })
+  }
+
+  const extension = uploadedFile.name.split(".").pop()?.toLowerCase() ?? ""
+  if (!allowedExtensions.has(extension)) {
+    return NextResponse.json({ message: "Chỉ hỗ trợ file PDF hoặc DOCX." }, { status: 400 })
+  }
+
+  const { buffer, storedFileName, publicUrl } = await saveUploadedFile(uploadedFile, extension)
+  const initialContent = extension === "docx" ? await docxToInitialContent(buffer) : null
 
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
       {
         item: {
           id: `mock-doc-${Date.now()}`,
-          title: parsed.data.title,
-          content: textToTiptapDoc(parsed.data.initialText),
+          title,
+          content: initialContent ?? createEmptyDoc(),
+          format: extension === "pdf" ? "PDF" : "DOCX",
+          fileUrl: publicUrl,
         },
       },
       { status: 201 }
@@ -99,11 +184,25 @@ export async function POST(request: Request, { params }: RouteContext) {
   const document = await prisma.document.create({
     data: {
       workspaceId,
-      title: parsed.data.title,
+      title,
       status: DocumentStatus.ACTIVE,
       createdById: user.id,
       updatedById: user.id,
-      content: textToTiptapDoc(parsed.data.initialText),
+      ...(initialContent ? { content: initialContent } : {}),
+      attachments: {
+        create: {
+          workspaceId,
+          uploaderId: user.id,
+          fileName: storedFileName,
+          originalName: uploadedFile.name,
+          mimeType: uploadedFile.type || inferMimeType(extension),
+          extension,
+          sizeBytes: BigInt(uploadedFile.size),
+          storageProvider: "local",
+          storageKey: `uploads/documents/${storedFileName}`,
+          publicUrl,
+        },
+      },
     },
   })
 
@@ -111,8 +210,21 @@ export async function POST(request: Request, { params }: RouteContext) {
     workspaceId,
     actorId: user.id,
     type: "DOCUMENT_CREATED",
-    message: `đã tạo tài liệu "${parsed.data.title}"`,
+    message: `đã tạo tài liệu "${title}"`,
   })
 
-  return NextResponse.json({ item: document }, { status: 201 })
+  return NextResponse.json(
+    {
+      item: {
+        id: document.id,
+        title: document.title,
+        workspaceId: document.workspaceId,
+        createdAt: document.createdAt,
+        updatedAt: document.updatedAt,
+        format: extension === "pdf" ? "PDF" : "DOCX",
+        fileUrl: publicUrl,
+      },
+    },
+    { status: 201 }
+  )
 }

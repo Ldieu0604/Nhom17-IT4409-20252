@@ -1,11 +1,16 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/api/invitations/[invitationId]/accept/route": "app/api/invitations/[invitationId]/accept/route.js",
-  "/api/workspaces/[workspaceId]/chat/[messageId]/reactions/route": "app/api/workspaces/[workspaceId]/chat/[messageId]/reactions/route.js",
+  "/api/invitations/pending/route": "app/api/invitations/pending/route.js",
   "/api/workspaces/[workspaceId]/chat/channels/route": "app/api/workspaces/[workspaceId]/chat/channels/route.js",
-  "/api/workspaces/[workspaceId]/chat/read/route": "app/api/workspaces/[workspaceId]/chat/read/route.js",
-  "/api/workspaces/[workspaceId]/chat/route": "app/api/workspaces/[workspaceId]/chat/route.js",
+  "/api/workspaces/[workspaceId]/documents/[documentId]/route": "app/api/workspaces/[workspaceId]/documents/[documentId]/route.js",
+  "/api/workspaces/[workspaceId]/documents/route": "app/api/workspaces/[workspaceId]/documents/route.js",
+  "/api/workspaces/[workspaceId]/members/route": "app/api/workspaces/[workspaceId]/members/route.js",
+  "/api/workspaces/[workspaceId]/tasks/[taskId]/route": "app/api/workspaces/[workspaceId]/tasks/[taskId]/route.js",
+  "/api/workspaces/[workspaceId]/tasks/route": "app/api/workspaces/[workspaceId]/tasks/route.js",
+  "/api/workspaces/route": "app/api/workspaces/route.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/page": "app/page.js",
-  "/sign-in/[[...sign-in]]/page": "app/sign-in/[[...sign-in]]/page.js",
+  "/workspaces/[workspaceId]/documents/[documentId]/page": "app/workspaces/[workspaceId]/documents/[documentId]/page.js",
   "/workspaces/[workspaceId]/page": "app/workspaces/[workspaceId]/page.js"
 }
