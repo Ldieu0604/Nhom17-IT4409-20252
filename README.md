@@ -2,13 +2,6 @@
 
 Đề tài 4: xây dựng website quản lý dự án/công việc, hỗ trợ tạo task, phân công, theo dõi tiến độ, quản lý tài liệu dùng chung và mở rộng theo hướng realtime bằng WebSocket.
 
-README này được cập nhật theo đúng codebase hiện tại và viết theo hướng người mới vẫn có thể đọc để hiểu:
-
-- hệ thống đang có gì
-- database hoạt động ra sao
-- từng kỹ thuật đang được dùng như thế nào
-- cú pháp cơ bản để cả nhóm đọc code và làm tiếp
-
 ## 1. Mục tiêu dự án
 
 Hệ thống cho phép một nhóm làm việc trong cùng một `workspace` để:
