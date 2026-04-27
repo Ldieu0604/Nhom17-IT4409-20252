@@ -6,7 +6,6 @@ import { TemplatesSection } from "@/components/templates-section"
 import { RecentDocuments } from "@/components/recent-documents"
 import { WorkspacesSection } from "@/components/workspaces-section"
 import { CalendarSection } from "@/components/calendar-section"
-import { ChatPanel } from "@/components/chat-panel"
 import { ActivityFeed } from "@/components/activity-feed"
 import { WorkspaceInvitationsPanel } from "@/components/workspace-invitations-panel"
 import { getDashboardData } from "@/lib/data"
@@ -90,7 +89,6 @@ export default async function Home() {
       </main>
 
       <Footer />
-      {signedIn ? <ChatPanel activities={data.activities} /> : null}
     </div>
   )
 }
