@@ -1,288 +1,186 @@
-# Collaborative Workspace Platform
+# Collab Docs
 
-> A real-time collaborative workspace system inspired by Google Docs, Notion, and Trello.
+A full-stack collaborative document application built with Next.js, Express, Prisma, and PostgreSQL. This repository currently includes authentication flows, the core database schema for documents and permissions, and the base client/server setup for future real-time editing features.
 
----
+## 🏗️ Project Structure
 
-## Introduction
-
-This project is a fullstack web application that enables users to collaborate in real-time on documents, tasks, and communication within shared workspaces.
-
----
-
-##  Features
-
-### Authentication
-
-* Register / Login / Logout
-* JWT authentication
-* Session management (refresh token)
-
-
-### Workspace Management
-
-* Create workspace
-* Invite members via link/email
-* Manage members
-* Role-based access:
-
-  * Owner
-  * Editor
-  * Viewer
-
-
-### Real-time Collaborative Document
-
-* Multi-user editing (Google Docs-like)
-* Conflict-free editing (CRDT - Yjs)
-* Cursor presence (see others typing)
-* Auto-save system
-* Version history & restore
-
-
-### Communication
-
-* Realtime chat
-* Instant messaging via WebSocket
-
-
-### Notification & Activity Log
-
-* Activity tracking:
-
-  * Document updates
-  * Task changes
-  * Member actions
-* Notification system:
-
-  * Task assignment
-  * Mentions (@user)
-  * Invitations
-
-
-### Kanban Task Board
-
-* Create tasks
-* Assign users
-* Drag & drop (Todo → Doing → Done)
-* Task comments
-
----
-
-## System Architecture
-
-```
-Frontend (React + Tiptap)
-        ↓
-WebSocket (Socket.IO + Yjs)
-        ↓
-Backend (NestJS)
-        ↓
---------------------------
-| PostgreSQL (Main DB)  |
---------------------------
-        ↓
---------------------------
-| Redis (Realtime)     |
---------------------------
+```text
+collab-doc-editor/
+├── client/           # Next.js frontend application
+│   └── src/app/      # App Router pages and layouts
+├── server/           # Express API + Prisma ORM
+│   ├── prisma/       # Prisma schema, migrations, and seed script
+│   └── src/          # Routes, controllers, middleware, server entry
+└── README.md         # Project setup and team workflow
 ```
 
----
+## ✨ Current Scope
 
-## 🧰 Tech Stack
+- User authentication: register, login, and forgot-password flow
+- Express REST API with health check endpoint
+- Prisma data models for users, documents, permissions, comments, and snapshots
+- Next.js client with auth pages and dashboard-ready foundation
 
-### Backend
+## 🚀 Quick Start
 
-* NestJS
-* Prisma ORM
+### Prerequisites
 
-### Frontend
+- **Node.js 20+** and npm
+- **PostgreSQL**
+- **Git**
 
-* React
-* Tiptap Editor
+### Initial Setup
 
-### Database
-
-* PostgreSQL
-* Redis
-
-### Realtime
-
-* Socket.IO
-* Yjs (CRDT)
-
----
-
-## 🗄️ Data Strategy
-
-### PostgreSQL
-
-Stores:
-
-* Users
-* Workspaces
-* Membership & roles
-* Documents metadata
-* Tasks
-* Messages
-* Activity logs
-* Version snapshots
-* Invitations
-
-
-### Redis
-
-Stores:
-
-* Online users
-* Cursor presence
-* Socket mapping
-* Temporary session data
-
-
-### Yjs (CRDT)
-
-Handles:
-
-* Document sync
-* Conflict resolution
-* Update logs & snapshots
-
----
-
-## Realtime Flow
-
-1. User opens document
-2. WebSocket connection established
-3. Yjs syncs data
-4. Changes broadcast to all users
-5. Periodic snapshot saved to DB
-
----
-
-## Installation
-
-### 1. Clone project
+1. **Clone the repository**
 
 ```bash
-
+git clone https://github.com/Ldieu0604/Nhom17-IT4409-20252.git
+cd collab-doc-editor
 ```
 
-### 2. Install dependencies
+2. **Install dependencies**
 
 ```bash
-# Backend
+cd server
+npm install
 
-
-# Frontend
-
+cd ../client
+npm install
 ```
 
-### 3. Environment variables
-
-Create `.env` in backend:
-
-```env
-
-```
-
-### 4. Run migration
+3. **Configure environment variables**
 
 ```bash
-
+# Server
+cd ../server
+cp .env.example .env.local
 ```
 
-### 5. Start project
 
 ```bash
-# Backend
-
-
-# Frontend
-
+# Server
+cd ../client
+cp .env.example .env.local
 ```
 
----
+4. **Set up the database**
 
-## 📁 Project Structure
+```bash
+cd server
 
-```
-backend/
-├── src/
-│   ├── auth/
-│   ├── users/
-│   ├── workspaces/
-│   ├── documents/
-│   ├── tasks/
-│   ├── chat/
-│   ├── activity/
-│   └── websocket/
+# Generate Prisma client
+npm run prisma:generate
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── editor/
-│   ├── hooks/
-│   └── services/
+# Apply migrations
+npm run prisma:migrate
+
+# Seed sample data
+npm run db:seed
 ```
 
----
+5. **Start the backend**
 
-## Roles & Permissions
+```bash
+cd server
+npm run dev
+```
 
-| Role   | Description  |
-| ------ | ------------ |
-| Owner  | Full control |
-| Editor | Edit content |
-| Viewer | Read-only    |
+The backend will start at `http://localhost:4000`
 
----
+6. **Start the frontend**
 
-## Core Concepts
+```bash
+cd client
+npm run dev
+```
 
-### CRDT (Yjs)
+The frontend will start at `http://localhost:3000`
 
-* Conflict-free editing
-* Real-time sync
-* Offline support
+### Useful Endpoints
 
+- `GET /api/health` - Server health check
+- `POST /api/auth/register` - Create account
+- `POST /api/auth/login` - Sign in
+- `POST /api/auth/forgot-password` - Mock forgot password flow
 
-### WebSocket (Socket.IO)
+## 👥 Team Development Guide
 
-* Real-time communication
-* Chat + document sync
+### Git Workflow
 
+We use **Feature Branch Workflow** with the following branches:
 
-### Redis
+- `main` - Production-ready code
+- `develop` - Integration branch for features
+- `feature/*` - Individual feature branches
 
-* Presence tracking
-* Performance optimization
+### Creating a new feature
 
----
+1. **Update your local develop branch**
 
-## Future Improvements
+```bash
+git checkout develop
+git pull origin develop
+```
 
-* Full-text search
-* File upload
-* Dark mode UI
-* Mobile responsive
-* Export PDF
-* Analytics dashboard
+2. **Create a feature branch**
 
----
+```bash
+git checkout -b feature/your-feature-name
+```
 
-## Learning Outcomes
+3. **Work on your feature**
 
-* Realtime system design
-* CRDT implementation
-* Backend architecture
-* Role-based authorization
-* Fullstack development
+```bash
+git add .
+git commit -m "feat: add your feature description"
+```
 
----
+4. **Push your branch**
 
+```bash
+git push origin feature/your-feature-name
+```
 
-## License
+5. **Create a Pull Request**
+   - Go to GitHub
+   - Create PR from your feature branch to `develop`
+   - Assign reviewers
+   - Wait for approval and merge
 
-This project is for educational purposes.
+### Branch Naming Convention
+
+- `feature/` - New features (e.g., `feature/approval-workflow`)
+- `fix/` - Bug fixes (e.g., `fix/pdf-export-error`)
+- `docs/` - Documentation updates
+- `refactor/` - Code refactoring
+- `test/` - Test additions or fixes
+
+### Commit Message Convention
+
+Format: `<type>: <description>`
+
+Types:
+
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation changes
+- `style` - Code style changes (formatting)
+- `refactor` - Code refactoring
+- `test` - Test changes
+- `chore` - Build process or auxiliary tool changes
+
+Examples:
+
+```bash
+git commit -m "feat: add work order approval API"
+git commit -m "fix: resolve PDF signature embedding issue"
+git commit -m "docs: update API documentation"
+```
+
+## 📝 API Documentation
+
+API routes are available under `/api`. Key endpoints:
+
+| Method | Endpoint             | Description |
+| ------ | -------------------- | ----------- |
+| POST   | `/api/auth/login` | Đăng nhập   |
