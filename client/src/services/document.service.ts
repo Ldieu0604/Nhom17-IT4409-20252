@@ -197,3 +197,9 @@ export async function createDocumentComment(
     body: JSON.stringify(payload),
   })
 }
+
+export async function revokePublicLink(documentId: string) {
+  return request<DocumentShareSettings>(`/documents/${documentId}/public-link`, {
+    method: "DELETE",
+  })
+}
