@@ -93,25 +93,15 @@ function formatUser(user) {
     lastname: user.lastname,
     avatar: user.avatar,
     displayName: [user.firstname, user.lastname].filter(Boolean).join(" "),
-    initials:
-      `${user.firstname?.[0] || ""}${user.lastname?.[0] || ""}`.toUpperCase() ||
-      user.username?.slice(0, 2).toUpperCase(),
+    initials: `${user.firstname?.[0] || ""}${user.lastname?.[0] || ""}`.toUpperCase() || user.username?.slice(0, 2).toUpperCase(),
   };
 }
 
 function formatDocument(document, currentUserId = null) {
   const owner = formatUser(document.owner);
-  const permission = document.permissions?.find(
-    (item) => item.userId === currentUserId,
-  );
-  const collaborators =
-    document.permissions
-      ?.map((item) => formatUser(item.user))
-      .filter(Boolean) || [];
-  const role =
-    document.ownerId === currentUserId
-      ? "owner"
-      : permission?.role || document.publicRole || "viewer";
+  const permission = document.permissions?.find((item) => item.userId === currentUserId);
+  const collaborators = document.permissions?.map((item) => formatUser(item.user)).filter(Boolean) || [];
+  const role = document.ownerId === currentUserId ? "owner" : permission?.role || document.publicRole || "viewer";
 
   return {
     id: document.id,
@@ -154,28 +144,17 @@ function formatComment(comment) {
 }
 
 function canReadDocument(document, authUser) {
-  const hasDirectAccess =
+  return (
+    document.isPublic ||
     document.ownerId === authUser?.id ||
-    document.permissions.some(
-      (permission) => permission.userId === authUser?.id,
-    );
-
-  const hasPublicAccess =
-    document.isPublic === true && document.publicRole !== null;
-
-  return hasDirectAccess || hasPublicAccess;
+    document.permissions.some((permission) => permission.userId === authUser?.id)
+  );
 }
 
 function getRoleForUser(document, authUser) {
   if (document.ownerId === authUser?.id) return "owner";
-  const permission = document.permissions.find(
-    (item) => item.userId === authUser?.id,
-  );
-  if (permission) return permission.role;
-  if (document.isPublic === true && document.publicRole) {
-    return document.publicRole;
-  }
-  return null;
+  const permission = document.permissions.find((item) => item.userId === authUser?.id);
+  return permission?.role || document.publicRole || null;
 }
 
 function canCommentDocument(document, authUser) {
@@ -198,23 +177,19 @@ export const listDocuments = async (req, res) => {
     const search = String(req.query.search || "").trim();
     const ownerFilter = String(req.query.owner || "all");
     const sort = String(req.query.sort || "updatedAt");
-    const order =
-      String(req.query.order || "desc").toLowerCase() === "asc"
-        ? "asc"
-        : "desc";
+    const order = String(req.query.order || "desc").toLowerCase() === "asc" ? "asc" : "desc";
 
     const visibilityWhere = authUser
       ? ownerFilter === "me"
         ? { ownerId: authUser.id }
         : {
-            OR:
-              ownerFilter === "shared"
-                ? [{ permissions: { some: { userId: authUser.id } } }]
-                : [
-                    { ownerId: authUser.id },
-                    { isPublic: true },
-                    { permissions: { some: { userId: authUser.id } } },
-                  ],
+            OR: ownerFilter === "shared"
+              ? [{ permissions: { some: { userId: authUser.id } } }]
+              : [
+                  { ownerId: authUser.id },
+                  { isPublic: true },
+                  { permissions: { some: { userId: authUser.id } } },
+                ],
           }
       : { isPublic: true };
 
@@ -232,7 +207,10 @@ export const listDocuments = async (req, res) => {
       ],
     };
 
-    const orderBy = sort === "title" ? { title: order } : { updatedAt: order };
+    const orderBy =
+      sort === "title"
+        ? { title: order }
+        : { updatedAt: order };
 
     const documents = await prisma.document.findMany({
       where,
@@ -277,9 +255,7 @@ export const getDocument = async (req, res) => {
     }
 
     if (!canReadDocument(document, authUser)) {
-      return res
-        .status(403)
-        .json({ message: "You do not have access to this document." });
+      return res.status(403).json({ message: "You do not have access to this document." });
     }
 
     return res.json({ data: formatDocument(document, authUser?.id) });
@@ -293,13 +269,10 @@ export const createDocument = async (req, res) => {
   try {
     const authUser = getAuthUser(req);
     if (!authUser?.id) {
-      return res
-        .status(401)
-        .json({ message: "Please sign in to create a document." });
+      return res.status(401).json({ message: "Please sign in to create a document." });
     }
 
-    const title =
-      sanitizeTitle(req.body.title) || getDefaultTitle(req.body.templateId);
+    const title = sanitizeTitle(req.body.title) || getDefaultTitle(req.body.templateId);
     const document = await prisma.document.create({
       data: {
         title,
@@ -316,9 +289,7 @@ export const createDocument = async (req, res) => {
       },
     });
 
-    return res
-      .status(201)
-      .json({ data: formatDocument(document, authUser.id) });
+    return res.status(201).json({ data: formatDocument(document, authUser.id) });
   } catch (err) {
     console.error("[createDocument] error:", err);
     return res.status(500).json({ message: "Unable to create document." });
@@ -329,9 +300,7 @@ export const renameDocument = async (req, res) => {
   try {
     const authUser = getAuthUser(req);
     if (!authUser?.id) {
-      return res
-        .status(401)
-        .json({ message: "Please sign in to rename a document." });
+      return res.status(401).json({ message: "Please sign in to rename a document." });
     }
 
     const title = sanitizeTitle(req.body.title);
@@ -351,9 +320,7 @@ export const renameDocument = async (req, res) => {
     }
 
     if (!canEditDocument(current, authUser)) {
-      return res.status(403).json({
-        message: "You do not have permission to rename this document.",
-      });
+      return res.status(403).json({ message: "You do not have permission to rename this document." });
     }
 
     const document = await prisma.document.update({
@@ -380,9 +347,7 @@ export const deleteDocument = async (req, res) => {
   try {
     const authUser = getAuthUser(req);
     if (!authUser?.id) {
-      return res
-        .status(401)
-        .json({ message: "Please sign in to delete a document." });
+      return res.status(401).json({ message: "Please sign in to delete a document." });
     }
 
     const current = await prisma.document.findUnique({
@@ -394,9 +359,7 @@ export const deleteDocument = async (req, res) => {
     }
 
     if (current.ownerId !== authUser.id) {
-      return res
-        .status(403)
-        .json({ message: "Only the owner can delete this document." });
+      return res.status(403).json({ message: "Only the owner can delete this document." });
     }
 
     await prisma.document.delete({
@@ -414,9 +377,7 @@ export const getShareSettings = async (req, res) => {
   try {
     const authUser = getAuthUser(req);
     if (!authUser?.id) {
-      return res
-        .status(401)
-        .json({ message: "Please sign in to view sharing settings." });
+      return res.status(401).json({ message: "Please sign in to view sharing settings." });
     }
 
     const document = await prisma.document.findUnique({
@@ -437,9 +398,7 @@ export const getShareSettings = async (req, res) => {
     }
 
     if (!canReadDocument(document, authUser)) {
-      return res
-        .status(403)
-        .json({ message: "You do not have access to this document." });
+      return res.status(403).json({ message: "You do not have access to this document." });
     }
 
     return res.json({
@@ -453,9 +412,7 @@ export const getShareSettings = async (req, res) => {
     });
   } catch (err) {
     console.error("[getShareSettings] error:", err);
-    return res
-      .status(500)
-      .json({ message: "Unable to load sharing settings." });
+    return res.status(500).json({ message: "Unable to load sharing settings." });
   }
 };
 
@@ -463,9 +420,7 @@ export const updateShareSettings = async (req, res) => {
   try {
     const authUser = getAuthUser(req);
     if (!authUser?.id) {
-      return res
-        .status(401)
-        .json({ message: "Please sign in to share this document." });
+      return res.status(401).json({ message: "Please sign in to share this document." });
     }
 
     const current = await prisma.document.findUnique({
@@ -480,9 +435,7 @@ export const updateShareSettings = async (req, res) => {
     }
 
     if (current.ownerId !== authUser.id) {
-      return res
-        .status(403)
-        .json({ message: "Only the owner can change sharing settings." });
+      return res.status(403).json({ message: "Only the owner can change sharing settings." });
     }
 
     const data = {};
@@ -504,27 +457,19 @@ export const updateShareSettings = async (req, res) => {
       });
     }
 
-    const inviteEmail = String(req.body.inviteEmail || "")
-      .trim()
-      .toLowerCase();
+    const inviteEmail = String(req.body.inviteEmail || "").trim().toLowerCase();
     const role = String(req.body.role || "viewer");
     if (inviteEmail) {
       if (!SHARE_ROLES.has(role)) {
         return res.status(400).json({ message: "Invalid invite role." });
       }
 
-      const invitedUser = await prisma.user.findUnique({
-        where: { email: inviteEmail },
-      });
+      const invitedUser = await prisma.user.findUnique({ where: { email: inviteEmail } });
       if (!invitedUser) {
-        return res
-          .status(404)
-          .json({ message: "No user found with that email." });
+        return res.status(404).json({ message: "No user found with that email." });
       }
       if (invitedUser.id === authUser.id) {
-        return res
-          .status(400)
-          .json({ message: "Owner already has full access." });
+        return res.status(400).json({ message: "Owner already has full access." });
       }
 
       await prisma.permission.upsert({
@@ -556,9 +501,7 @@ export const updateShareSettings = async (req, res) => {
     return getShareSettings(req, res);
   } catch (err) {
     console.error("[updateShareSettings] error:", err);
-    return res
-      .status(500)
-      .json({ message: "Unable to update sharing settings." });
+    return res.status(500).json({ message: "Unable to update sharing settings." });
   }
 };
 
@@ -577,9 +520,7 @@ export const listComments = async (req, res) => {
     }
 
     if (!canReadDocument(document, authUser)) {
-      return res
-        .status(403)
-        .json({ message: "You do not have access to this document." });
+      return res.status(403).json({ message: "You do not have access to this document." });
     }
 
     const comments = await prisma.comment.findMany({
@@ -614,9 +555,7 @@ export const createComment = async (req, res) => {
     }
 
     if (!canCommentDocument(document, authUser)) {
-      return res.status(403).json({
-        message: "You do not have permission to comment on this document.",
-      });
+      return res.status(403).json({ message: "You do not have permission to comment on this document." });
     }
 
     const content = String(req.body.content || "").trim();
@@ -628,12 +567,8 @@ export const createComment = async (req, res) => {
       data: {
         content,
         selectedText: String(req.body.selectedText || "").slice(0, 1000),
-        fromPos: Number.isFinite(Number(req.body.fromPos))
-          ? Number(req.body.fromPos)
-          : null,
-        toPos: Number.isFinite(Number(req.body.toPos))
-          ? Number(req.body.toPos)
-          : null,
+        fromPos: Number.isFinite(Number(req.body.fromPos)) ? Number(req.body.fromPos) : null,
+        toPos: Number.isFinite(Number(req.body.toPos)) ? Number(req.body.toPos) : null,
         documentId: req.params.documentId,
         userId: authUser.id,
       },
@@ -651,9 +586,7 @@ export const deleteComment = async (req, res) => {
   try {
     const authUser = getAuthUser(req);
     if (!authUser?.id) {
-      return res
-        .status(401)
-        .json({ message: "Please sign in to delete comments." });
+      return res.status(401).json({ message: "Please sign in to delete comments." });
     }
 
     const comment = await prisma.comment.findUnique({
@@ -665,13 +598,8 @@ export const deleteComment = async (req, res) => {
       return res.status(404).json({ message: "Comment not found." });
     }
 
-    if (
-      comment.userId !== authUser.id &&
-      comment.document.ownerId !== authUser.id
-    ) {
-      return res.status(403).json({
-        message: "You do not have permission to delete this comment.",
-      });
+    if (comment.userId !== authUser.id && comment.document.ownerId !== authUser.id) {
+      return res.status(403).json({ message: "You do not have permission to delete this comment." });
     }
 
     await prisma.comment.delete({ where: { id: req.params.commentId } });
@@ -680,48 +608,5 @@ export const deleteComment = async (req, res) => {
   } catch (err) {
     console.error("[deleteComment] error:", err);
     return res.status(500).json({ message: "Unable to delete comment." });
-  }
-};
-
-export const revokePublicLink = async (req, res) => {
-  try {
-    const authUser = getAuthUser(req);
-    if (!authUser?.id) {
-      return res
-        .status(401)
-        .json({ message: "Please sign in to revoke public link." });
-    }
-
-    const { documentId } = req.params;
-    if (!documentId) {
-      return res.status(400).json({ message: "documentId is required." });
-    }
-
-    const document = await prisma.document.findUnique({
-      where: { id: documentId },
-    });
-
-    if (!document) {
-      return res.status(404).json({ message: "Document not found." });
-    }
-
-    if (document.ownerId !== authUser.id) {
-      return res
-        .status(403)
-        .json({ message: "Only the owner can revoke the public link." });
-    }
-
-    await prisma.document.update({
-      where: { id: documentId },
-      data: {
-        isPublic: false,
-        publicRole: null,
-      },
-    });
-
-    return getShareSettings(req, res);
-  } catch (err) {
-    console.error("[revokePublicLink] error:", err);
-    return res.status(500).json({ message: "Unable to revoke public link." });
   }
 };

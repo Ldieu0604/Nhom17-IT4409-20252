@@ -31,19 +31,11 @@ type Props = {
     }>
 }
 
-type DocumentData = {
-    role?: string
-    title?: string
-    [key: string]: any
-}
-
 function DocumentPageContent({ documentId }: { documentId: string }) {
     const room = useRoom()
     const doc = useMemo(() => new Y.Doc(), [])
     const userInfo = useSelf((me) => me.info)
     const [title, setTitle] = useState("Tài liệu chưa có tiêu đề")
-    const [documentData, setDocumentData] = useState<DocumentData | null>(null)
-    const [canEdit, setCanEdit] = useState(false)
 
     // Logic đồng bộ hóa Yjs Provider từ branch develop/dashboard
     const yProvider = useMemo(() => {
@@ -65,17 +57,12 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
     }
 }, [yProvider])
 
-    // Lấy tiêu đề thực tế của tài liệu và kiểm tra quyền
+    // Lấy tiêu đề thực tế của tài liệu
     useEffect(() => {
         let active = true
         getDashboardDocument(documentId)
             .then((document) => {
-                if (active) {
-                    setTitle(document.title)
-                    setDocumentData(document)
-                    const userRole = document.role
-                    setCanEdit(userRole === 'owner' || userRole === 'editor')
-                }
+                if (active) setTitle(document.title)
             })
             .catch((error) => {
                 console.warn("Không thể tải thông tin tài liệu:", error)
@@ -134,8 +121,7 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
         ].filter(Boolean) as any,
         immediatelyRender: false,
         shouldRerenderOnTransaction: true,
-        editable: canEdit,
-    }, [doc, room, userInfo, yProvider, canEdit]);
+    }, [doc, room, userInfo, yProvider]);
 
 
     return (
