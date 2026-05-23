@@ -36,12 +36,14 @@ export function Navbar({
     title = "Untitled document",
     onExportPdf,
     onRename,
+    onTitleDraftChange,
     onToggleComments,
 }: {
     documentId: string
     title?: string
     onExportPdf?: () => void
     onRename?: (title: string) => Promise<void> | void
+    onTitleDraftChange?: (title: string) => void
     onToggleComments?: () => void
 }) {
     const router = useRouter()
@@ -78,11 +80,17 @@ export function Navbar({
     const initials = useMemo(() => getInitials(displayName), [displayName])
 
     async function commitName() {
-        const nextName = name.trim() || title
+        const nextName = name.trim() || title || "Untitled document"
         setName(nextName)
+        onTitleDraftChange?.(nextName)
         setEditing(false)
         if (nextName !== title) {
-            await onRename?.(nextName)
+            setSaving(true)
+            try {
+                await onRename?.(nextName)
+            } finally {
+                setSaving(false)
+            }
         }
     }
 
@@ -92,14 +100,14 @@ export function Navbar({
     }
 
     return (
-        <header className="flex h-16 items-center justify-between gap-4 border-b bg-white px-4">
+        <header className="flex h-14 items-center justify-between gap-4 border-b border-neutral-200 bg-[#fbfbfa] px-4">
             <div className="flex min-w-0 items-center gap-3">
                 <Link
                     href="/dashboard"
                     title="Về dashboard"
-                    className="flex h-10 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm transition hover:bg-primary/90"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
                 >
-                    <FileText className="h-6 w-6" />
+                    <FileText className="h-5 w-5" />
                 </Link>
 
                 <div className="flex min-w-0 flex-col">
@@ -107,7 +115,11 @@ export function Navbar({
                         <input
                             className="w-64 max-w-[55vw] rounded-md border px-2 py-1 text-sm font-semibold outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                             value={name}
-                            onChange={(event) => setName(event.target.value)}
+                            onChange={(event) => {
+                                const nextName = event.target.value
+                                setName(nextName)
+                                onTitleDraftChange?.(nextName)
+                            }}
                             onBlur={commitName}
                             onKeyDown={(event) => {
                                 if (event.key === "Enter") {
@@ -119,12 +131,15 @@ export function Navbar({
                     ) : (
                         <div className="flex min-w-0 items-baseline gap-2">
                             <h1
-                                className="max-w-[48vw] cursor-text truncate text-lg font-medium text-slate-800"
-                                onClick={() => setEditing(true)}
+                                className="max-w-[48vw] cursor-text truncate text-sm font-medium text-neutral-700"
+                                onClick={() => {
+                                    setName(title)
+                                    setEditing(true)
+                                }}
                             >
-                                {name}
+                                {title}
                             </h1>
-                            <span className="hidden text-xs text-slate-500 sm:inline">
+                            <span className="hidden text-xs text-neutral-400 sm:inline">
                                 {saving ? "Đang lưu..." : "Đã lưu"}
                             </span>
                         </div>
@@ -136,7 +151,7 @@ export function Navbar({
                 <button
                     type="button"
                     onClick={onExportPdf}
-                    className="hidden h-9 items-center gap-2 rounded-md px-3 text-sm text-slate-700 transition hover:bg-slate-100 md:flex"
+                    className="hidden h-8 items-center gap-2 rounded-md px-2.5 text-sm text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 md:flex"
                 >
                     <Download className="h-4 w-4" />
                     Xuất PDF
@@ -144,13 +159,13 @@ export function Navbar({
                 <button
                     type="button"
                     onClick={onToggleComments}
-                    className="hidden h-9 items-center gap-2 rounded-md px-3 text-sm text-slate-700 transition hover:bg-slate-100 md:flex"
+                    className="hidden h-8 items-center gap-2 rounded-md px-2.5 text-sm text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 md:flex"
                 >
                     <MessageSquareText className="h-4 w-4" />
                     Bình luận
                 </button>
                 <div
-                    className={`hidden h-9 items-center gap-2 rounded-md px-3 text-sm md:flex ${
+                    className={`hidden h-8 items-center gap-2 rounded-md px-2.5 text-sm md:flex ${
                         isOnline ? "text-emerald-700" : "text-amber-700"
                     }`}
                     title={isOnline ? "Online" : "Offline"}
@@ -162,7 +177,7 @@ export function Navbar({
                 <button
                     type="button"
                     onClick={handleLogout}
-                    className="hidden h-9 items-center gap-2 rounded-md px-3 text-sm text-slate-700 transition hover:bg-slate-100 hover:text-red-600 md:flex"
+                    className="hidden h-8 items-center gap-2 rounded-md px-2.5 text-sm text-neutral-600 transition hover:bg-neutral-100 hover:text-red-600 md:flex"
                 >
                     <LogOut className="h-4 w-4" />
                     Đăng xuất

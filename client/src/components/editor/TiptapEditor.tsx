@@ -216,16 +216,17 @@ export default function TiptapEditor({
   return (
     <div
       ref={editorWrapperRef}
-      className="relative h-full w-full"
+      className="relative min-h-[70vh] w-full"
       onMouseDownCapture={handleEditorCommentPointer}
     >
       <FloatingCommentButton
         visible={Boolean(selectedRange)}
         onClick={onStartComment ?? (() => undefined)}
       />
-      <EditorContent 
+      <EditorContent
         editor={editor}
-        className="focus:outline-none min-h-full prose prose-sm max-w-none"/>
+        className="prose prose-slate max-w-none text-slate-900 focus:outline-none [&_.ProseMirror]:min-h-[70vh] [&_.ProseMirror]:px-1 [&_.ProseMirror]:pb-24 [&_.ProseMirror]:outline-none [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-slate-400"
+      />
     </div>
   )
 }

@@ -8,11 +8,10 @@ import React, {
   useState,
 } from "react";
 import { Navbar } from "@/components/layout/Navbar";
+import { WorkspaceSidebar } from "@/components/layout/WorkspaceSidebar";
 import EditorMenuBar from "@/components/editor/EditorMenuBar";
 import EditorDynamicToolbar from "@/components/editor/EditorDynamicToolbar";
-import { MarginControls } from "@/components/editor/MarginControls";
-import { PaginatedEditorShell } from "@/components/editor/PaginatedEditorShell";
-import { PageRuler } from "@/components/editor/PageRuler";
+import { NotionEditorShell } from "@/components/editor/NotionEditorShell";
 import type { EditorMenuKey } from "@/types/editor-menu";
 import type {
   EditorToolbarActions,
@@ -20,7 +19,6 @@ import type {
 } from "@/types/editor-toolbar";
 import type { EditorSelectionRange } from "@/types/editor-selection";
 import type { CommentMarkRange, DocumentComment } from "@/types/comment";
-import { DEFAULT_PAGE_MARGINS, type PageMargins } from "@/types/page-layout";
 import { CommentPanel } from "@/components/comments/CommentPanel";
 import {
   createDocumentComment,
@@ -30,7 +28,7 @@ import {
   updateDocumentComment,
   updateDocumentCommentPosition,
 } from "@/services/document.service";
-import { useBroadcastEvent, useEventListener } from "@/lib/liveblocks.config";
+import { useBroadcastEvent, useEventListener, useOthers } from "@/lib/liveblocks.config";
 
 const COMMENT_REVALIDATE_INTERVAL_MS = 15000;
 type DocumentRole = "owner" | "editor" | "commenter" | "viewer" | string;
@@ -59,6 +57,7 @@ export function AppLayout({
   currentRole?: DocumentRole | null;
 }) {
   const [activeMenu, setActiveMenu] = useState<EditorMenuKey>("format");
+  const [currentTitle, setCurrentTitle] = useState(title || "Untitled document");
   const [selectedRange, setSelectedRange] =
     useState<EditorSelectionRange | null>(null);
   const [comments, setComments] = useState<DocumentComment[]>([]);
@@ -70,16 +69,38 @@ export function AppLayout({
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [commentDraftRange, setCommentDraftRange] =
     useState<EditorSelectionRange | null>(null);
-  const [pageMargins, setPageMargins] =
-    useState<PageMargins>(DEFAULT_PAGE_MARGINS);
-  const [showMarginControls, setShowMarginControls] = useState(false);
   const commentLoadRequestRef = useRef(0);
   const hasLoadedCommentsRef = useRef(false);
   const syncedCommentMarkIdsRef = useRef<Set<string>>(new Set());
   const recentlyCreatedCommentIdsRef = useRef<Set<string>>(new Set());
   const deletingCommentIdsRef = useRef<Set<string>>(new Set());
   const commentPositionSyncTimeoutsRef = useRef<Map<string, number>>(new Map());
+  const savedTitleRef = useRef(title || "Untitled document");
   const broadcastCommentEvent = useBroadcastEvent();
+  const others = useOthers();
+  const activeUsers = others.map((other: any) => ({
+    name: other.presence?.userInfo?.name || "Guest",
+    color: other.presence?.userInfo?.color || "#10b981",
+  }));
+
+  const commitDocumentTitle = useCallback(
+    async (nextTitle: string) => {
+      const normalizedTitle = nextTitle.trim() || "Untitled document";
+      const previousTitle = savedTitleRef.current;
+
+      setCurrentTitle(normalizedTitle);
+      if (normalizedTitle === previousTitle) return;
+
+      try {
+        await renameDashboardDocument(documentId, normalizedTitle);
+        savedTitleRef.current = normalizedTitle;
+      } catch (error) {
+        setCurrentTitle(previousTitle);
+        throw error;
+      }
+    },
+    [documentId],
+  );
 
   const loadComments = useCallback(async (options?: { showLoading?: boolean }) => {
     const showLoading = options?.showLoading ?? true;
@@ -822,7 +843,6 @@ export function AppLayout({
     onInsertImage: () => console.log("insert image"),
     onInsertLink: () => console.log("insert link"),
     onAddComment: canComment ? handleStartCommentFromSelection : undefined,
-    onToggleMarginControls: () => setShowMarginControls((visible) => !visible),
   };
 
   // Lấy kiểu văn bản hiện tại
@@ -859,7 +879,6 @@ export function AppLayout({
     fontSize: getCurrentFontSize(),
     showRuler: false,
     showOutline: false,
-    showMarginControls,
     canUndo: editor?.can().undo() || false,
     canRedo: editor?.can().redo() || false,
     activeMarks: {
@@ -886,83 +905,77 @@ export function AppLayout({
     : children;
 
   return (
-    <div className="flex h-screen flex-col">
-      <Navbar
-        key={`${documentId}-${title}`}
-        documentId={documentId}
-        title={title}
-        onExportPdf={() => window.print()}
-        onRename={async (nextTitle) => {
-          await renameDashboardDocument(documentId, nextTitle);
-        }}
-        onToggleComments={() => {
-          setIsCommentPanelOpen((open) => !open);
-          clearDraftComment();
-        }}
-      />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Menu bar + dynamic toolbar */}
-        <EditorMenuBar
-          activeMenu={activeMenu}
-          onChangeMenu={handleChangeMenu}
+    <div className="flex h-screen overflow-hidden bg-[#fbfbfa]">
+      <WorkspaceSidebar title={currentTitle} activeUsers={activeUsers} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Navbar
+          key={documentId}
+          documentId={documentId}
+          title={currentTitle}
+          onExportPdf={() => window.print()}
+          onRename={commitDocumentTitle}
+          onTitleDraftChange={setCurrentTitle}
+          onToggleComments={() => {
+            setIsCommentPanelOpen((open) => !open);
+            clearDraftComment();
+          }}
         />
-        <EditorDynamicToolbar
-          activeMenu={activeMenu}
-          actions={toolbarActions}
-          state={toolbarState}
-        />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="border-b border-neutral-200 bg-[#fbfbfa]/95 backdrop-blur">
+            <EditorMenuBar
+              activeMenu={activeMenu}
+              onChangeMenu={handleChangeMenu}
+            />
+            <EditorDynamicToolbar
+              activeMenu={activeMenu}
+              actions={toolbarActions}
+              state={toolbarState}
+            />
+          </div>
 
-        <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 overflow-hidden bg-gray-100">
-            <div className="flex h-full flex-col">
-              <PageRuler
-                margins={pageMargins}
-                onMarginsChange={setPageMargins}
-              />
-              {showMarginControls && (
-                <MarginControls
-                  margins={pageMargins}
-                  onChange={setPageMargins}
+          <div className="flex flex-1 overflow-hidden">
+            <main className="flex-1 overflow-hidden bg-[#fbfbfa]">
+              <NotionEditorShell
+                commentsOpen={isCommentPanelOpen}
+                title={currentTitle}
+                canRename={canEdit}
+                currentRole={currentRole}
+                canEdit={canEdit}
+                activeUsersCount={activeUsers.length}
+                onTitleDraftChange={setCurrentTitle}
+                onTitleCommit={commitDocumentTitle}
+              >
+                {editorChildren}
+              </NotionEditorShell>
+            </main>
+
+            {isCommentPanelOpen && (
+              <div className="hidden w-80 shrink-0 border-l border-neutral-200 bg-white md:block">
+                <CommentPanel
+                  documentId={documentId}
+                  comments={comments}
+                  errorMessage={commentError}
+                  draftRange={commentDraftRange}
+                  isComposerOpen={isComposerOpen}
+                  isLoading={isLoadingComments}
+                  isSubmitting={isSubmittingComment}
+                  activeCommentId={activeCommentId}
+                  onRetry={loadComments}
+                  onClose={() => {
+                    setIsCommentPanelOpen(false);
+                    clearDraftComment();
+                  }}
+                  onSubmitComment={handleSubmitComment}
+                  onCancelComposer={clearDraftComment}
+                  onSelectComment={handleSelectComment}
+                  onEditComment={editComment}
+                  onDeleteComment={deleteComment}
+                  canEditComment={canManageComment}
+                  canDeleteComment={canManageComment}
                 />
-              )}
-              <div className="flex-1 overflow-auto">
-                <PaginatedEditorShell
-                  margins={pageMargins}
-                  onMarginsChange={setPageMargins}
-                  pageCount={2}
-                >
-                  {editorChildren}
-                </PaginatedEditorShell>
               </div>
-            </div>
-          </main>
-
-          {isCommentPanelOpen && (
-            <div className="hidden w-80 shrink-0 md:block">
-              <CommentPanel
-                documentId={documentId}
-                comments={comments}
-                errorMessage={commentError}
-                draftRange={commentDraftRange}
-                isComposerOpen={isComposerOpen}
-                isLoading={isLoadingComments}
-                isSubmitting={isSubmittingComment}
-                activeCommentId={activeCommentId}
-                onRetry={loadComments}
-                onClose={() => {
-                  setIsCommentPanelOpen(false);
-                  clearDraftComment();
-                }}
-                onSubmitComment={handleSubmitComment}
-                onCancelComposer={clearDraftComment}
-                onSelectComment={handleSelectComment}
-                onEditComment={editComment}
-                onDeleteComment={deleteComment}
-                canEditComment={canManageComment}
-                canDeleteComment={canManageComment}
-              />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
