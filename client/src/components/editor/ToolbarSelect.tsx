@@ -18,7 +18,7 @@ export default function ToolbarSelect({
             aria-label={ariaLabel}
             value={value}
             onChange={(e) => onChange && onChange(e.target.value)}
-            className="rounded border px-2 py-1 text-sm"
+            className="h-8 border border-gray-300 rounded px-2 text-sm bg-transparent hover:bg-gray-50 outline-none cursor-pointer"
         >
             {options.map((o) => (
                 <option key={o} value={o}>

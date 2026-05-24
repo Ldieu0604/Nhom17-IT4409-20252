@@ -13,8 +13,8 @@ import { ClientSideSuspense } from "@liveblocks/react";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
-import TextStyle from "@tiptap/extension-text-style";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
+import { TextStyle } from "@tiptap/extension-text-style";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
 import { LiveblocksYjsProvider } from "@liveblocks/yjs";
@@ -38,8 +38,15 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Paragraph from "@tiptap/extension-paragraph";
 import Document from "@tiptap/extension-document";
-import Text from "@tiptap/extension-text";
+import ListItem from "@tiptap/extension-list-item";
 import { CommentMark } from "@/components/editor/extensions/CommentMark";
+import { Indent } from "@/components/editor/extensions/Indent";
+import { Image } from '@tiptap/extension-image'
+import { Link } from '@tiptap/extension-link'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { TableHeader } from '@tiptap/extension-table-header'
 
 type Props = {
   params: Promise<{
@@ -105,6 +112,7 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
       extensions: [
         StarterKit.configure({
           history: false,
+          undoRedo: false,
           heading: {
             levels: [1, 2, 3],
           },
@@ -118,41 +126,104 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
               class: "list-decimal list-inside ml-0",
             },
           },
-          listItem: {},
+          listItem: false,
           document: false,
-          paragraph: false,
         } as any),
-        Collaboration.configure({
-          document: doc,
-          field: "content",
-        }),
-        CollaborationCursor.configure({
-          provider: yProvider,
-          user: {
-            name: displayName,
-            color:
-              userInfo?.color || getStableColor(displayName + TAB_SESSION_ID),
-          },
-        }),
-        TextStyle,
-        FontFamily,
-        FontSize.configure({ types: ["textStyle"] }),
-        Document,
-        Paragraph.extend({
+        ListItem.extend({
           addAttributes() {
             return {
               ...this.parent?.(),
               fontSize: {
-                default: "11px",
-                parseHTML: (element) => element.style.fontSize,
-                renderHTML: (attributes) => {
+                default: null,
+                parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
+                renderHTML: attributes => {
                   if (!attributes.fontSize) return {};
                   return { style: `font-size: ${attributes.fontSize}` };
+                },
+              },
+              fontFamily: {
+                default: null,
+                parseHTML: element => element.style.fontFamily?.replace(/['"]+/g, ''),
+                renderHTML: attributes => {
+                  if (!attributes.fontFamily) return {};
+                  return { style: `font-family: ${attributes.fontFamily}` };
+                },
+              },
+              bold: {
+                default: null,
+                parseHTML: element => element.style.fontWeight === 'bold' || element.style.fontWeight === '700',
+                renderHTML: attributes => {
+                  if (!attributes.bold) return {};
+                  return { style: 'font-weight: bold' };
+                },
+              },
+              italic: {
+                default: null,
+                parseHTML: element => element.style.fontStyle === 'italic',
+                renderHTML: attributes => {
+                  if (!attributes.italic) return {};
+                  return { style: 'font-style: italic' };
+                },
+              },
+              underline: {
+                default: null,
+                parseHTML: element => element.style.textDecoration?.includes('underline'),
+                renderHTML: attributes => {
+                  if (!attributes.underline) return {};
+                  return { style: 'text-decoration: underline' };
+                },
+              },
+              textColor: {
+                default: null,
+                parseHTML: element => element.style.color,
+                renderHTML: attributes => {
+                  if (!attributes.textColor) return {};
+                  return { style: `color: ${attributes.textColor}` };
+                },
+              },
+              highlightColor: {
+                default: null,
+                parseHTML: element => element.style.backgroundColor,
+                renderHTML: attributes => {
+                  if (!attributes.highlightColor) return {};
+                  return { style: `background-color: ${attributes.highlightColor}` };
                 },
               },
             };
           },
         }),
+        Image.configure({
+          inline: true,
+          allowBase64: true, 
+        }),
+        Link.configure({
+          openOnClick: false, 
+          autolink: true,
+          defaultProtocol: 'https',
+        }),
+        Table.configure({
+          resizable: true, 
+        }),
+        TableRow,
+        TableHeader,
+        TableCell,
+        Collaboration.configure({
+          document: doc,
+          field: "content",
+        }),
+        CollaborationCaret.configure({
+          provider: yProvider,
+          user: {
+            name: displayName,
+            color: userInfo?.color || getStableColor(displayName + TAB_SESSION_ID),
+          },
+        }),
+        TextStyle,
+        FontFamily,
+        FontSize,
+        Indent,
+        Document,
+        Paragraph,
         Color.configure({ types: [TextStyle.name] }),
         Highlight.configure({
           multicolor: true,
@@ -180,25 +251,6 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
         CommentMark,
         Underline,
       ].filter(Boolean) as any,
-
-      onUpdate({ editor }) {
-        const pages = document.querySelectorAll('.prose-page-container'); 
-        pages.forEach((pageElement, index) => {
-  
-          const currentWidth = pageElement.clientWidth; 
-          const dynamicMaxHeight = currentWidth * 1.414; 
-        
-          if (pageElement.scrollHeight > dynamicMaxHeight) {
-                  const currentPosition = editor.state.selection.$from.pos;
-                  
-                  // Kích hoạt lệnh ngắt trang tự động
-                  editor.chain()
-                      .insertContentAt(currentPosition, { type: 'pageBreak' })
-                      .focus()
-                      .run();
-            }
-        });
-    },
       immediatelyRender: false,
       shouldRerenderOnTransaction: true,
       editable: myPermission?.canEdit ?? false,
@@ -296,23 +348,23 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
   console.log("📝 Editor state:", { editor: !!editor, userInfo });
 
   useEffect(() => {
-    // Chỉ update user info khi displayName thay đổi, không recreate editor
-    if (editor && displayName) {
-      console.log(
-        "🎨 Update cursor info (không recreate editor):",
-        displayName,
-      );
+    // 1. Chặn ngay nếu editor chưa sẵn sàng, đã bị hủy, hoặc chưa có displayName
+    if (!editor || editor.isDestroyed || !displayName) {
+      return; 
+    }
 
-      if (editor.commands.updateUser) {
-        editor.commands.updateUser({
-          name: displayName,
-          color:
-            userInfo?.color || getStableColor(displayName + TAB_SESSION_ID),
-        });
-        console.log("✅ updateUser thành công");
-      } else {
-        console.warn("⚠️ updateUser command not found");
-      }
+    console.log("🎨 Update cursor info:", displayName);
+
+    // 2. Sử dụng Optional Chaining (?.) để đảm bảo an toàn tuyệt đối
+    if (editor.commands?.updateUser) {
+      editor.commands.updateUser({
+        name: displayName,
+        color:
+          userInfo?.color || getStableColor(displayName + TAB_SESSION_ID),
+      });
+      console.log("✅ updateUser thành công");
+    } else {
+      console.warn("⚠️ updateUser command not found");
     }
   }, [displayName, editor, userInfo]);
 
@@ -322,6 +374,13 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
         <div className="text-sm text-muted-foreground">
           Đang tải tài liệu...
         </div>
+      </div>
+    );
+  }
+  if (!editor || !yProvider) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-sm text-muted-foreground">Đang khởi tạo trình soạn thảo...</div>
       </div>
     );
   }

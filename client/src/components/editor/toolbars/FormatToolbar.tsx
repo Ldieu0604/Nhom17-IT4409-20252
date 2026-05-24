@@ -6,34 +6,31 @@ import ToolbarIconButton from "@/components/editor/ToolbarIconButton"
 import { Bold, Italic, Underline, Type, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, ListChecks, Indent, Outdent, Highlighter } from "lucide-react"
 
 export default function FormatToolbar({ actions, state, disabled }: { actions?: any; state?: any; disabled?: boolean }) {
-    const [textColor, setTextColor] = useState("#000000")
-    const [highlightColor, setHighlightColor] = useState("#FFFF00")
-    const [localFontSize, setLocalFontSize] = useState(state?.fontSize?.replace('px', '') || "11")
+
+    const [localFontSize, setLocalFontSize] = useState(state?.fontSize?.replace('px', '') || "16")
     const fontSizeInputRef = useRef<HTMLInputElement>(null)
-
     const fontDisplay = state?.font || "Arial"
+    const textColor = state?.textColor || "#000000"
+    const highlightColor = state?.highlightColor || "#FFFF00"
 
-    // Sync localFontSize với state?.fontSize từ AppLayout (chỉ khi không focus input)
     useEffect(() => {
-        if (fontSizeInputRef.current === document.activeElement) return // Skip nếu input đang focus
-        const newSize = state?.fontSize?.replace('px', '') || "11"
+        if (fontSizeInputRef.current === document.activeElement) return 
+        const newSize = state?.fontSize?.replace('px', '') || "16"
         setLocalFontSize(newSize)
     }, [state?.fontSize])
 
     const handleTextColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const color = e.currentTarget.value
-        setTextColor(color)
         actions?.onTextColor?.(color)
     }
 
     const handleHighlightColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const color = e.currentTarget.value
-        setHighlightColor(color)
         actions?.onHighlightColor?.(color)
     }
-    
+
     const styleToLabel: Record<string, string> = {
-        "paragraph": "Normal text",
+        "paragraph": "Paragraph",
         "h1": "Heading 1",
         "h2": "Heading 2",
         "h3": "Heading 3"
@@ -45,7 +42,7 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
             
             <ToolbarSelect 
                 ariaLabel="Style" 
-                options={["Normal text", "Heading 1", "Heading 2", "Heading 3"]} 
+                options={["Paragraph", "Heading 1", "Heading 2", "Heading 3"]} 
                 value={currentStyleLabel} 
                 onChange={(v) => actions?.onStyleChange && actions.onStyleChange(v)} 
             />
@@ -60,7 +57,6 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
                 ))}
             </select> 
 
-            {/* Font Size Input */}
             <div className="flex items-center border border-gray-300 rounded hover:bg-gray-50 px-1 h-8 bg-white relative group">
                 <input
                     ref={fontSizeInputRef}
@@ -75,10 +71,10 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
                         }
                     }}
                     onBlur={(e) => {
-                        const value = e.target.value || "11"
+                        const value = e.target.value || "16"
                         setLocalFontSize(value)
                         if (!value || isNaN(Number(value)) || Number(value) <= 0) {
-                            actions?.onFontSizeChange?.("11")
+                            actions?.onFontSizeChange?.("16")
                         }
                     }}
                     onKeyDown={(e) => {

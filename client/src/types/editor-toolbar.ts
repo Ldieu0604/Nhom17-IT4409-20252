@@ -57,6 +57,8 @@ export type EditorToolbarState = {
     style?: string
     font?: string
     fontSize?: string
+    textColor: string
+    highlightColor: string
     showRuler?: boolean
     showOutline?: boolean
     canUndo?: boolean

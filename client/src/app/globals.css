@@ -255,19 +255,16 @@ ul[data-type="taskList"] input[type="checkbox"] {
 }
 
 
-/* 1. Định dạng vùng soạn thảo gốc của Tiptap */
 .ProseMirror {
   min-height: 100%;
   outline: none;
   background: transparent;
   padding: 0;
-  /* Đảm bảo khoảng cách dòng và chữ tiêu chuẩn như Microsoft Word */
   line-height: 1.6;
   font-size: 16px;
-  color: #1e293b; /* slate-800 */
+  color: #1e293b; 
 }
 
-/* 2. Khoảng cách tiêu chuẩn cho các thẻ văn bản bên trong Editor */
 .ProseMirror p {
   margin-top: 0;
   margin-bottom: 0.5rem;
@@ -294,27 +291,23 @@ ul[data-type="taskList"] input[type="checkbox"] {
   margin-bottom: 0.5rem;
 }
 
-/* 3. Đảm bảo cấu trúc danh sách hiển thị đúng (Tránh lỗi mất dấu đầu dòng) */
 .ProseMirror ul, 
 .ProseMirror ol {
   padding-left: 1.5rem;
   margin-bottom: 1rem;
 }
 
-/* 4. Hiệu ứng lựa chọn phần tử đặc biệt (Ví dụ: Node hình ảnh khi được click) */
 .ProseMirror-selectednode {
   outline: 2px solid #3b82f6 !important; /* Xanh primary */
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
-/* 5. Cấu hình in ấn (Export PDF) - Tự động ẩn các đường viền nháp */
 @media print {
   body {
     background: #fff;
     color: #000;
   }
   
-  /* Ẩn các thành phần giao diện không cần in */
   nav, 
   .sticky, 
   [role="toolbar"],
@@ -322,11 +315,51 @@ ul[data-type="taskList"] input[type="checkbox"] {
     display: none !important;
   }
 
-  /* Ép khung nội dung chiếm toàn bộ trang in */
+  
   section {
     box-shadow: none !important;
     ring: none !important;
     padding: 0 !important;
     margin: 0 !important;
   }
+}
+
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  min-width: 1em;
+  border: 1px solid #ced4da;
+  padding: 8px 10px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ProseMirror table th {
+  font-weight: bold;
+  text-align: left;
+  background-color: #f8f9fa; 
+}
+
+.ProseMirror table .column-resize-handle {
+  background-color: #adf;
+  bottom: -2px;
+  position: absolute;
+  right: -2px;
+  pointer-events: none;
+  top: 0;
+  width: 4px;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
 }

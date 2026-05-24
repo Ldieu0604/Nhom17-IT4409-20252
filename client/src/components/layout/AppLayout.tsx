@@ -655,7 +655,11 @@ export function AppLayout({
     onRedo: canEdit ? () => editor?.chain().focus().redo().run() : undefined,
     onBold: canEdit
       ? () => {
-          const result = editor?.chain().focus().toggleBold().run();
+          const result = editor?.chain()
+                                .focus()
+                                .toggleBold()
+                                .updateAttributes("listItem", { bold: !editor.isActive("bold") })
+                                .run();
           console.log(
             "[BOLD]",
             result ? "Success" : "Failed",
@@ -665,7 +669,11 @@ export function AppLayout({
       : undefined,
     onItalic: canEdit
       ? () => {
-          const result = editor?.chain().focus().toggleItalic().run();
+          const result = editor?.chain()
+                                .focus()
+                                .toggleItalic()
+                                .updateAttributes('listItem', { italic: !editor.isActive("italic") })
+                                .run();
           console.log(
             "[ITALIC]",
             result ? "Success" : "Failed",
@@ -675,7 +683,11 @@ export function AppLayout({
       : undefined,
     onUnderline: canEdit
       ? () => {
-          const result = editor?.chain().focus().toggleUnderline().run();
+          const result = editor?.chain()
+                                .focus()
+                                .toggleUnderline()
+                                .updateAttributes('listItem', { underline: !editor.isActive("underline") })
+                                .run();
           console.log(
             "[UNDERLINE]",
             result ? "Success" : "Failed",
@@ -685,7 +697,6 @@ export function AppLayout({
       : undefined,
     onStyleChange: canEdit
     ? (style: string) => {
-        // Chuyển đổi nhãn UI thành giá trị chuẩn
         const styleMap: { [key: string]: string } = {
           "Normal text": "paragraph",
           "Heading 1": "h1",
@@ -693,8 +704,6 @@ export function AppLayout({
           "Heading 3": "h3",
         };
         const styleValue = styleMap[style] || style;
-
-        // Logic chuyển đổi giống hệt Word
         if (styleValue === "paragraph") {
           editor?.chain().focus().setParagraph().run();
         } else if (styleValue === "h1") {
@@ -708,20 +717,51 @@ export function AppLayout({
         console.log(`[STYLE] Changed to ${styleValue}`);
       }
     : undefined,
-      onFontSizeChange: canEdit
-        ? (size: string) => {
-            const sizeValue = size.replace("px", "");
-            const result = editor
-              ?.chain()
+    onFontChange: canEdit
+      ? (font: string) => {
+          if (!editor) return;
+          if (editor.state.selection.empty) {
+            const { $from } = editor.state.selection;
+            const from = $from.before();
+            const to = $from.after();
+            
+            editor.chain()
               .focus()
-              .setFontSize(`${sizeValue}px`)
+              .setTextSelection({ from, to }) 
+              .setFontFamily(font) 
+              .updateAttributes('listItem', { fontFamily: font })      
               .run();
+          } else {
+            editor.chain()
+              .focus()
+              .setFontFamily(font)
+              .updateAttributes('listItem', { fontFamily: font })
+              .run();
+          }
+          
+          console.log("[FONT CHANGED]", font);
+        }
+      : undefined,
+    onFontSizeChange: canEdit
+      ? (size: string) => {
+          const sizeValue = size.replace("px", "");
+          const result = editor
+            ?.chain()
+            .focus()
+            .setFontSize(`${sizeValue}px`)
+            .updateAttributes('listItem', { fontSize: `${sizeValue}px` })
+            .run();
             console.log("[FONT_SIZE]", size, result ? "Success" : "Failed");
           }
-        : undefined,
+      : undefined,
     onTextColor: canEdit
       ? (color: string) => {
-          const result = editor?.chain().focus().setColor(color).run();
+          const result = editor
+            ?.chain()
+            .focus()
+            .setColor(color)
+            .updateAttributes("listItem", { textColor: color })
+            .run();
           console.log("[TEXT_COLOR]", color, result ? "Success" : "Failed");
         }
       : undefined,
@@ -731,6 +771,7 @@ export function AppLayout({
             ?.chain()
             .focus()
             .toggleHighlight({ color })
+            .updateAttributes("listItem", { highlightColor: color })
             .run();
           console.log("[HIGHLIGHT]", color, result ? "Success" : "Failed");
         }
@@ -755,7 +796,15 @@ export function AppLayout({
       : undefined,
     onBulletList: canEdit
       ? () => {
+          if (!editor) return;
+          let currentAlign = "left";
+          if (editor.isActive({ textAlign: "center" })) currentAlign = "center";
+          else if (editor.isActive({ textAlign: "right" })) currentAlign = "right";
+
           const result = editor?.chain().focus().toggleBulletList().run();
+          if (currentAlign !== "left") {
+            editor.chain().focus().setTextAlign(currentAlign).run();
+          }
           console.log(
             "[BULLET_LIST]",
             result ? "Success" : "Failed",
@@ -765,7 +814,15 @@ export function AppLayout({
       : undefined,
     onNumberedList: canEdit
       ? () => {
+          if (!editor) return;
+          let currentAlign = "left";
+          if (editor.isActive({ textAlign: "center" })) currentAlign = "center";
+          else if (editor.isActive({ textAlign: "right" })) currentAlign = "right";
+
           const result = editor?.chain().focus().toggleOrderedList().run();
+          if (currentAlign !== "left") {
+            editor.chain().focus().setTextAlign(currentAlign).run();
+          }
           console.log(
             "[ORDERED_LIST]",
             result ? "Success" : "Failed",
@@ -775,7 +832,15 @@ export function AppLayout({
       : undefined,
     onChecklist: canEdit
       ? () => {
+          if (!editor) return;
+          let currentAlign = "left";
+          if (editor.isActive({ textAlign: "center" })) currentAlign = "center";
+          else if (editor.isActive({ textAlign: "right" })) currentAlign = "right";
+
           const result = editor?.chain().focus().toggleTaskList().run();
+          if (currentAlign !== "left") {
+            editor.chain().focus().setTextAlign(currentAlign).run();
+          }
           console.log(
             "[TASK_LIST]",
             result ? "Success" : "Failed",
@@ -785,41 +850,62 @@ export function AppLayout({
       : undefined,
     onDecreaseIndent: canEdit
       ? () => {
-          // Check if can lift
-          if (editor?.can().liftListItem("listItem")) {
-            const result = editor
-              ?.chain()
-              .focus()
-              .liftListItem("listItem")
-              .run();
-            console.log("[DECREASE_INDENT]", result ? "Success" : "Failed");
+          if (!editor) return;
+          if (editor.isActive("listItem")) {
+            if (editor.can().liftListItem("listItem")) {
+              const result = editor.chain().focus().liftListItem("listItem").run();
+              console.log("[DECREASE_LIST_INDENT]", result ? "Success" : "Failed");
+            }
           } else {
-            console.log("[DECREASE_INDENT] Cannot lift - not in a list item");
+            const result = editor.chain().focus().decreaseIndent().run();
+            console.log("[DECREASE_BLOCK_INDENT]", result ? "Success" : "Failed");
           }
         }
       : undefined,
     onIncreaseIndent: canEdit
       ? () => {
-          if (editor?.can().sinkListItem("listItem")) {
-            const result = editor
-              ?.chain()
-              .focus()
-              .sinkListItem("listItem")
-              .run();
-            console.log("[INCREASE_INDENT]", result ? "Success" : "Failed");
+          if (!editor) return;
+          if (editor.isActive("listItem")) {
+            if (editor.can().sinkListItem("listItem")) {
+              const result = editor.chain().focus().sinkListItem("listItem").run();
+              console.log("[INCREASE_LIST_INDENT]", result ? "Success" : "Failed");
+            }
           } else {
-            console.log(
-              "[INCREASE_INDENT] Cannot sink - not in a list item or no next item",
-            );
+            const result = editor.chain().focus().increaseIndent().run();
+            console.log("[INCREASE_BLOCK_INDENT]", result ? "Success" : "Failed");
           }
         }
       : undefined,
-    onInsertImage: () => console.log("insert image"),
-    onInsertLink: () => console.log("insert link"),
+    onInsertImage: canEdit
+      ? () => {
+          const url = window.prompt("Nhập đường dẫn hình ảnh (URL):");
+          if (url) {
+            editor?.chain().focus().setImage({ src: url }).run();
+          }
+        }
+      : undefined,
+
+    onInsertLink: canEdit
+      ? () => {
+          const previousUrl = editor?.getAttributes("link").href;
+          const url = window.prompt("Nhập đường dẫn (URL):", previousUrl);
+
+          if (url === null) return;
+          if (url === "") {
+            editor?.chain().focus().extendMarkRange("link").unsetLink().run();
+            return;
+          }
+          editor?.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+        }
+      : undefined,
+    onInsertTable: canEdit
+      ? () => {
+          editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+        }
+      : undefined,
     onAddComment: canComment ? handleStartCommentFromSelection : undefined,
   };
 
-  // Lấy kiểu văn bản hiện tại
   const getCurrentStyle = () => {
     if (editor?.isActive("heading", { level: 1 })) return "h1";
     if (editor?.isActive("heading", { level: 2 })) return "h2";
@@ -827,23 +913,39 @@ export function AppLayout({
     return "paragraph";
   };
 
-  // Lấy font hiện tại
   const getCurrentFont = () => {
-    return editor?.getAttributes("textStyle").fontFamily || "Arial";
+    const inlineFont = editor?.getAttributes("textStyle").fontFamily;
+    if (inlineFont) return inlineFont;
+    return "Inter"; 
   };
 
-  // Lấy cỡ chữ hiện tại
   const getCurrentFontSize = () => {
-    return (
-      editor?.getAttributes("textStyle").fontSize?.replace("px", "") || "11"
-    );
+    const inlineSize = editor?.getAttributes("textStyle").fontSize;
+    if (inlineSize) return inlineSize.replace("px", "");
+    if (editor?.isActive("heading", { level: 1 })) return "36";
+    if (editor?.isActive("heading", { level: 2 })) return "24";
+    if (editor?.isActive("heading", { level: 3 })) return "20";
+    return "16"; 
   };
 
-  // Lấy căn lề hiện tại
   const getCurrentAlignment = () => {
     if (editor?.isActive({ textAlign: "center" })) return "center";
     if (editor?.isActive({ textAlign: "right" })) return "right";
     return "left";
+  };
+  const getCurrentTextColor = () => {
+    if (!editor) return "#000000";
+    const inlineColor = editor?.getAttributes("textStyle")?.color;
+    if (inlineColor) return inlineColor;
+    if (editor?.isActive("listItem")) {
+      const listColor = editor?.getAttributes("listItem").textColor;
+      if (listColor) return listColor;
+    }
+    return "#000000";
+  };
+  const getCurrentHighlightColor = () => {
+    if (!editor) return "#FFFF00";
+    return editor.getAttributes("highlight")?.color || "#FFFF00";
   };
 
   const toolbarState: EditorToolbarState = {
@@ -851,6 +953,8 @@ export function AppLayout({
     style: getCurrentStyle(),
     font: getCurrentFont(),
     fontSize: getCurrentFontSize(),
+    textColor: getCurrentTextColor(),
+    highlightColor: getCurrentHighlightColor(),
     showRuler: false,
     showOutline: false,
     canUndo: editor?.can().undo() || false,
