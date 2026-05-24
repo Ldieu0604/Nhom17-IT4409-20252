@@ -700,7 +700,6 @@ export function AppLayout({
                 <PaginatedEditorShell
                   margins={pageMargins}
                   onMarginsChange={setPageMargins}
-                  pageCount={2}
                 >
                   {editorChildren}
                 </PaginatedEditorShell>

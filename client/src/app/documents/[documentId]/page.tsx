@@ -173,6 +173,25 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
         CommentMark,
         Underline,
       ].filter(Boolean) as any,
+
+      onUpdate({ editor }) {
+        const pages = document.querySelectorAll('.prose-page-container'); 
+        pages.forEach((pageElement, index) => {
+  
+          const currentWidth = pageElement.clientWidth; 
+          const dynamicMaxHeight = currentWidth * 1.414; 
+        
+          if (pageElement.scrollHeight > dynamicMaxHeight) {
+                  const currentPosition = editor.state.selection.$from.pos;
+                  
+                  // Kích hoạt lệnh ngắt trang tự động
+                  editor.chain()
+                      .insertContentAt(currentPosition, { type: 'pageBreak' })
+                      .focus()
+                      .run();
+            }
+        });
+    },
       immediatelyRender: false,
       shouldRerenderOnTransaction: true,
       editable: myPermission?.canEdit ?? false,

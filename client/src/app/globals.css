@@ -258,3 +258,79 @@ ul[data-type="taskList"] input[type="checkbox"] {
   margin: 0;
 }
 
+
+/* 1. Định dạng vùng soạn thảo gốc của Tiptap */
+.ProseMirror {
+  min-height: 100%;
+  outline: none;
+  background: transparent;
+  padding: 0;
+  /* Đảm bảo khoảng cách dòng và chữ tiêu chuẩn như Microsoft Word */
+  line-height: 1.6;
+  font-size: 16px;
+  color: #1e293b; /* slate-800 */
+}
+
+/* 2. Khoảng cách tiêu chuẩn cho các thẻ văn bản bên trong Editor */
+.ProseMirror p {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.ProseMirror h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* 3. Đảm bảo cấu trúc danh sách hiển thị đúng (Tránh lỗi mất dấu đầu dòng) */
+.ProseMirror ul, 
+.ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* 4. Hiệu ứng lựa chọn phần tử đặc biệt (Ví dụ: Node hình ảnh khi được click) */
+.ProseMirror-selectednode {
+  outline: 2px solid #3b82f6 !important; /* Xanh primary */
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* 5. Cấu hình in ấn (Export PDF) - Tự động ẩn các đường viền nháp */
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+  
+  /* Ẩn các thành phần giao diện không cần in */
+  nav, 
+  .sticky, 
+  [role="toolbar"],
+  .outline-dashed {
+    display: none !important;
+  }
+
+  /* Ép khung nội dung chiếm toàn bộ trang in */
+  section {
+    box-shadow: none !important;
+    ring: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
