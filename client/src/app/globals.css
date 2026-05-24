@@ -242,11 +242,7 @@ ul[data-type="taskList"] input[type="checkbox"] {
   accent-color: var(--primary);
 }
 
-.tiptap ul, 
-.tiptap ol {
-  padding: 0 1rem;
-  margin: 1.25rem 1rem 1.25rem 0.4rem;
-}
+
 
 .tiptap li {
   display: list-item; 

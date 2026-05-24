@@ -31,10 +31,25 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
         setHighlightColor(color)
         actions?.onHighlightColor?.(color)
     }
+    
+    const styleToLabel: Record<string, string> = {
+        "paragraph": "Normal text",
+        "h1": "Heading 1",
+        "h2": "Heading 2",
+        "h3": "Heading 3"
+    };
+    const currentStyleLabel = styleToLabel[state?.style] || "Normal text";
 
     return (
         <div className="flex h-10 items-center gap-1 overflow-x-auto whitespace-nowrap border-b bg-white px-4">
-            <ToolbarSelect ariaLabel="Style" options={["Normal text", "Heading 1", "Heading 2", "Heading 3"]} value={state?.style || "Normal text"} onChange={(v) => actions?.onStyleChange && actions.onStyleChange(v)} />
+            
+            <ToolbarSelect 
+                ariaLabel="Style" 
+                options={["Normal text", "Heading 1", "Heading 2", "Heading 3"]} 
+                value={currentStyleLabel} 
+                onChange={(v) => actions?.onStyleChange && actions.onStyleChange(v)} 
+            />
+            
             <select 
                 className="h-8 border border-gray-300 rounded px-2 text-sm bg-transparent hover:bg-gray-50 outline-none cursor-pointer"
                 value={fontDisplay}
@@ -45,40 +60,41 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
                 ))}
             </select> 
 
-           {/* Font Size Input */}
-        <div className="flex items-center border border-gray-300 rounded hover:bg-gray-50 px-1 h-8 bg-white relative group">
-            <input
-                ref={fontSizeInputRef}
-                type="number"
-                value={localFontSize}
-                onChange={(e) => {
-                    const value = e.target.value
-                    setLocalFontSize(value)
-                    // Apply real-time nếu là số hợp lệ
-                    if (value && !isNaN(Number(value)) && Number(value) > 0) {
-                        actions?.onFontSizeChange?.(value)
-                    }
-                }}
-                onBlur={(e) => {
-                    const value = e.target.value || "11"
-                    setLocalFontSize(value)
-                    if (!value || isNaN(Number(value)) || Number(value) <= 0) {
-                        actions?.onFontSizeChange?.("11")
-                    }
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        ;(e.target as HTMLInputElement).blur()
-                    }
-                }}
-                disabled={disabled}
-                min="1"
-                max="100"
-                className="w-14 text-center text-sm bg-transparent outline-none font-medium cursor-pointer"
-            />
-        </div>
-                       
+            {/* Font Size Input */}
+            <div className="flex items-center border border-gray-300 rounded hover:bg-gray-50 px-1 h-8 bg-white relative group">
+                <input
+                    ref={fontSizeInputRef}
+                    type="number"
+                    value={localFontSize}
+                    onChange={(e) => {
+                        const value = e.target.value
+                        setLocalFontSize(value)
+                        // Apply real-time nếu là số hợp lệ
+                        if (value && !isNaN(Number(value)) && Number(value) > 0) {
+                            actions?.onFontSizeChange?.(value)
+                        }
+                    }}
+                    onBlur={(e) => {
+                        const value = e.target.value || "11"
+                        setLocalFontSize(value)
+                        if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+                            actions?.onFontSizeChange?.("11")
+                        }
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            ;(e.target as HTMLInputElement).blur()
+                        }
+                    }}
+                    disabled={disabled}
+                    min="1"
+                    max="100"
+                    className="w-14 text-center text-sm bg-transparent outline-none font-medium cursor-pointer"
+                />
+            </div>
+                            
             <div className="mx-1 h-6 w-px shrink-0 bg-gray-300" />
+            
             <ToolbarIconButton label="Bold" icon={<Bold className="h-4 w-4" />} onClick={actions?.onBold} active={state?.activeMarks?.bold} disabled={disabled} />
             <ToolbarIconButton label="Italic" icon={<Italic className="h-4 w-4" />} onClick={actions?.onItalic} active={state?.activeMarks?.italic} disabled={disabled} />
             <ToolbarIconButton label="Underline" icon={<Underline className="h-4 w-4" />} onClick={actions?.onUnderline} active={state?.activeMarks?.underline} disabled={disabled} />
@@ -87,7 +103,7 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
                 <div className="relative flex flex-col items-center">
                     <Type className="h-4 w-4" />
                     <div 
-                        className="absolute -bottom-\[2px\] h-\[3px\] w-full rounded-full" 
+                        className="absolute -bottom-[2px] h-[3px] w-full rounded-full" 
                         style={{ backgroundColor: textColor }} 
                     />
                 </div>
@@ -104,7 +120,7 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
                 <div className="relative flex flex-col items-center">
                     <Highlighter className="h-4 w-4" />
                     <div 
-                        className="absolute -bottom-\[2px\] h-\[3px\] w-full rounded-full" 
+                        className="absolute -bottom-[2px] h-[3px] w-full rounded-full" 
                         style={{ backgroundColor: highlightColor }} 
                     />
                 </div>
@@ -118,11 +134,13 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
             </div>
 
             <div className="mx-1 h-6 w-px shrink-0 bg-gray-300" />
+            
             <ToolbarIconButton label="Căn trái" icon={<AlignLeft className="h-4 w-4" />} onClick={actions?.onAlignLeft} active={state?.activeAlignment === 'left'} disabled={disabled} />
             <ToolbarIconButton label="Căn giữa" icon={<AlignCenter className="h-4 w-4" />} onClick={actions?.onAlignCenter} active={state?.activeAlignment === 'center'} disabled={disabled} />
             <ToolbarIconButton label="Căn phải" icon={<AlignRight className="h-4 w-4" />} onClick={actions?.onAlignRight} active={state?.activeAlignment === 'right'} disabled={disabled} />
 
             <div className="mx-1 h-6 w-px shrink-0 bg-gray-300" />
+            
             <ToolbarIconButton label="Danh sách dấu đầu dòng" icon={<List className="h-4 w-4" />} onClick={actions?.onBulletList} disabled={disabled} />
             <ToolbarIconButton label="Danh sách đánh số" icon={<ListOrdered className="h-4 w-4" />} onClick={actions?.onNumberedList} disabled={disabled} />
             <ToolbarIconButton label="Checklist" icon={<ListChecks className="h-4 w-4" />} onClick={actions?.onChecklist} disabled={disabled} />

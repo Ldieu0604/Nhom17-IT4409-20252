@@ -684,67 +684,41 @@ export function AppLayout({
         }
       : undefined,
     onStyleChange: canEdit
-      ? (style: string) => {
-          let result: boolean | undefined = false;
-          // Convert UI label to style value
-          const styleMap: { [key: string]: string } = {
-            "Normal text": "paragraph",
-            "Heading 1": "h1",
-            "Heading 2": "h2",
-            "Heading 3": "h3",
-          };
-          const styleValue = styleMap[style] || style;
+    ? (style: string) => {
+        // Chuyển đổi nhãn UI thành giá trị chuẩn
+        const styleMap: { [key: string]: string } = {
+          "Normal text": "paragraph",
+          "Heading 1": "h1",
+          "Heading 2": "h2",
+          "Heading 3": "h3",
+        };
+        const styleValue = styleMap[style] || style;
 
-          if (styleValue === "paragraph") {
-            result = editor?.chain().focus().clearNodes().setParagraph().run();
-          } else if (styleValue === "h1") {
-            result = editor
+        // Logic chuyển đổi giống hệt Word
+        if (styleValue === "paragraph") {
+          editor?.chain().focus().setParagraph().run();
+        } else if (styleValue === "h1") {
+          editor?.chain().focus().toggleHeading({ level: 1 }).run();
+        } else if (styleValue === "h2") {
+          editor?.chain().focus().toggleHeading({ level: 2 }).run();
+        } else if (styleValue === "h3") {
+          editor?.chain().focus().toggleHeading({ level: 3 }).run();
+        }
+        
+        console.log(`[STYLE] Changed to ${styleValue}`);
+      }
+    : undefined,
+      onFontSizeChange: canEdit
+        ? (size: string) => {
+            const sizeValue = size.replace("px", "");
+            const result = editor
               ?.chain()
               .focus()
-              .clearNodes()
-              .toggleHeading({ level: 1 })
+              .setFontSize(`${sizeValue}px`)
               .run();
-          } else if (styleValue === "h2") {
-            result = editor
-              ?.chain()
-              .focus()
-              .clearNodes()
-              .toggleHeading({ level: 2 })
-              .run();
-          } else if (styleValue === "h3") {
-            result = editor
-              ?.chain()
-              .focus()
-              .clearNodes()
-              .toggleHeading({ level: 3 })
-              .run();
+            console.log("[FONT_SIZE]", size, result ? "Success" : "Failed");
           }
-          console.log(
-            "[STYLE]",
-            style,
-            "->",
-            styleValue,
-            result ? "Success" : "Failed",
-          );
-        }
-      : undefined,
-    onFontChange: canEdit
-      ? (font: string) => {
-          const result = editor?.chain().focus().setFontFamily(font).run();
-          console.log("[FONT]", font, result ? "Success" : "Failed");
-        }
-      : undefined,
-    onFontSizeChange: canEdit
-      ? (size: string) => {
-          const sizeValue = size.replace("px", "");
-          const result = editor
-            ?.chain()
-            .focus()
-            .setFontSize(`${sizeValue}px`)
-            .run();
-          console.log("[FONT_SIZE]", size, result ? "Success" : "Failed");
-        }
-      : undefined,
+        : undefined,
     onTextColor: canEdit
       ? (color: string) => {
           const result = editor?.chain().focus().setColor(color).run();

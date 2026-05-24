@@ -105,6 +105,9 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
       extensions: [
         StarterKit.configure({
           history: false,
+          heading: {
+            levels: [1, 2, 3],
+          },
           bulletList: {
             HTMLAttributes: {
               class: "list-disc list-inside ml-0",
