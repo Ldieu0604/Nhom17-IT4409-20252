@@ -201,17 +201,29 @@
     padding-left: 4rem;
 }
 
-/* Sửa lỗi căn lề cho List */
+/* =========================================
+   1. CHỈNH SỬA CHO BULLET & NUMBERED LIST
+   ========================================= */
 .tiptap ul[style*="text-align: center"],
-.tiptap ol[style*="text-align: center"] {
-    list-style-position: inside;
-}
-
+.tiptap ol[style*="text-align: center"],
 .tiptap ul[style*="text-align: right"],
 .tiptap ol[style*="text-align: right"] {
     list-style-position: inside;
 }
 
+.tiptap li {
+    display: list-item; 
+    margin-bottom: 0.5rem;
+}
+
+.tiptap li > p {
+    display: inline;
+    margin: 0;
+}
+
+/* =========================================
+   2. CẤU TRÚC GỐC CỦA CHECKLIST (Mặc định)
+   ========================================= */
 ul[data-type="taskList"] {
   list-style: none;
   padding: 0;
@@ -222,7 +234,7 @@ ul[data-type="taskList"] p {
 }
 
 ul[data-type="taskList"] li {
-  display: flex;
+  display: flex; 
 }
 
 ul[data-type="taskList"] li > label {
@@ -242,18 +254,37 @@ ul[data-type="taskList"] input[type="checkbox"] {
   accent-color: var(--primary);
 }
 
+/* =========================================
+   3. ÉP CHECKBOX CHẠY THEO KHI CĂN LỀ
+   ========================================= */
 
-
-.tiptap li {
-  display: list-item; 
-  margin-bottom: 0.5rem;
+ul[data-type="taskList"] li[style*="text-align: left"] {
+  justify-content: flex-start;
+}
+ul[data-type="taskList"] li[style*="text-align: left"] > div {
+  flex: 1 1 auto; 
+  text-align: left;
 }
 
-.tiptap li > p {
-  display: inline;
-  margin: 0;
+ul[data-type="taskList"] li[style*="text-align: center"] {
+  justify-content: center;
+}
+ul[data-type="taskList"] li[style*="text-align: center"] > div {
+  flex: 0 1 auto; 
+  text-align: center;
 }
 
+ul[data-type="taskList"] li[style*="text-align: right"] {
+  justify-content: flex-end;
+}
+ul[data-type="taskList"] li[style*="text-align: right"] > div {
+  flex: 0 1 auto;
+}
+
+
+ul[data-type="taskList"] li[style*="text-align: justify"] > div {
+  text-align: justify;
+}
 
 .ProseMirror {
   min-height: 100%;
@@ -362,4 +393,100 @@ ul[data-type="taskList"] input[type="checkbox"] {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
+}
+
+/* =========================================
+   GIAO DIỆN TOGGLE LIST (CHUẨN FLEXBOX)
+   ========================================= */
+.details-node {
+  margin: 0.5rem 0;
+}
+
+/* 1. Biến summary thành Flexbox để TÁCH BIỆT Mũi tên và Chữ */
+.details-node summary {
+  list-style: none !important; /* Xóa hẳn marker mặc định của trình duyệt */
+  display: flex;
+  align-items: flex-start;
+  outline: none;
+  cursor: text; /* Vùng chữ vẫn hiện con trỏ để gõ */
+  gap: 0.5rem;
+}
+
+/* Ẩn marker ẩn của Chrome/Safari */
+.details-node summary::-webkit-details-marker {
+  display: none;
+}
+
+/* 2. Tự vẽ mũi tên mới (Tách rời hoàn toàn khỏi chữ) */
+.details-node summary::before {
+  content: "▶";
+  display: inline-block;
+  width: 1.2rem; /* Cố định chiều rộng mũi tên */
+  flex-shrink: 0; /* Đảm bảo mũi tên không bị bóp méo */
+  cursor: pointer; /* Chuột biến thành bàn tay khi trỏ vào mũi tên */
+  color: #6b7280; /* Màu xám Notion */
+  font-size: 0.85rem;
+  margin-top: 0.15rem; /* Căn mũi tên cho cân đối với dòng chữ */
+  margin-right: 0.3rem; /* Tạo khoảng cách an toàn với chữ */
+  transition: transform 0.2s ease-in-out;
+  
+  /* QUAN TRỌNG NHẤT: Ngăn không cho bôi đen mũi tên */
+  user-select: none; 
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+/* Hover effect cho toggle button */
+.details-node summary::before:hover {
+  color: #374151;
+  transform: scale(1.1);
+}
+
+/* 3. Xoay mũi tên khi mở */
+.details-node[open] summary::before,
+.details-node.is-open summary::before {
+  transform: rotate(90deg);
+}
+
+/* 4. Căn chỉnh nội dung bị ẩn bên dưới thẳng hàng với chữ */
+.details-node > div[data-type="detailsContent"] {
+  margin-left: 1.5rem; /* Bằng chiều rộng mũi tên + margin */
+  border-left: 2px solid #e5e7eb;
+  padding-left: 0.8rem;
+  margin-top: 0.2rem;
+  animation: slideDown 0.2s ease-in-out;
+}
+
+/* Animation cho expand/collapse */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Đảm bảo click hoạt động trên summary */
+.details-node summary {
+  position: relative;
+}
+
+/* Thêm style cho summary text area - vùng edit */
+.details-node summary > span {
+  flex: 1;
+  outline: none;
 }

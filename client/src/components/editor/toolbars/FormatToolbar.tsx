@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import ToolbarSelect from "@/components/editor/ToolbarSelect"
 import ToolbarIconButton from "@/components/editor/ToolbarIconButton"
-import { Bold, Italic, Underline, Type, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, ListChecks, Indent, Outdent, Highlighter } from "lucide-react"
+import { Bold, Italic, Underline, Type, AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, ListChecks, Indent, Outdent, Highlighter, Table as TableIcon, Trash, Rows, Columns, ListCollapse   } from "lucide-react"
 
 export default function FormatToolbar({ actions, state, disabled }: { actions?: any; state?: any; disabled?: boolean }) {
 
@@ -52,7 +52,11 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
                 value={fontDisplay}
                 onChange={(e) => actions?.onFontChange?.(e.target.value)}
             >
-                {["Arial", "Times New Roman", "Roboto", "Inter", "Georgia", "Verdana"].map(f => (
+                {[
+                  "Arial", "Times New Roman", "Roboto", "Inter", "Georgia", "Verdana", 
+                  "Courier New", "Comic Sans MS", "Impact", "Tahoma", "Trebuchet MS", 
+                  "Nunito", "Open Sans", "Playfair Display"
+                ].map(f => (
                     <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
                 ))}
             </select> 
@@ -134,12 +138,13 @@ export default function FormatToolbar({ actions, state, disabled }: { actions?: 
             <ToolbarIconButton label="Căn trái" icon={<AlignLeft className="h-4 w-4" />} onClick={actions?.onAlignLeft} active={state?.activeAlignment === 'left'} disabled={disabled} />
             <ToolbarIconButton label="Căn giữa" icon={<AlignCenter className="h-4 w-4" />} onClick={actions?.onAlignCenter} active={state?.activeAlignment === 'center'} disabled={disabled} />
             <ToolbarIconButton label="Căn phải" icon={<AlignRight className="h-4 w-4" />} onClick={actions?.onAlignRight} active={state?.activeAlignment === 'right'} disabled={disabled} />
-
+            <ToolbarIconButton label="Căn đều" icon={<AlignJustify className="h-4 w-4" />} onClick={actions?.onJustify} active={state?.activeAlignment === 'justify'} disabled={disabled} />
             <div className="mx-1 h-6 w-px shrink-0 bg-gray-300" />
             
-            <ToolbarIconButton label="Danh sách dấu đầu dòng" icon={<List className="h-4 w-4" />} onClick={actions?.onBulletList} disabled={disabled} />
-            <ToolbarIconButton label="Danh sách đánh số" icon={<ListOrdered className="h-4 w-4" />} onClick={actions?.onNumberedList} disabled={disabled} />
-            <ToolbarIconButton label="Checklist" icon={<ListChecks className="h-4 w-4" />} onClick={actions?.onChecklist} disabled={disabled} />
+            <ToolbarIconButton label="Danh sách dấu đầu dòng" icon={<List className="h-4 w-4" />} onClick={actions?.onBulletList} active={state?.activeMarks?.bulletList} disabled={disabled} />
+            <ToolbarIconButton label="Danh sách đánh số" icon={<ListOrdered className="h-4 w-4" />} onClick={actions?.onNumberedList} active={state?.activeMarks?.orderedList} disabled={disabled} />
+            <ToolbarIconButton label="Checklist" icon={<ListChecks className="h-4 w-4" />} onClick={actions?.onChecklist} active={state?.activeMarks?.taskList} disabled={disabled} />
+            <ToolbarIconButton label="Danh sách sổ xuống" icon={<ListCollapse className="h-4 w-4" />} onClick={actions?.onToggleList} active={state?.activeMarks?.details} disabled={disabled} />
             <ToolbarIconButton label="Giảm thụt" icon={<Outdent className="h-4 w-4" />} onClick={actions?.onDecreaseIndent} disabled={disabled} />
             <ToolbarIconButton label="Tăng thụt" icon={<Indent className="h-4 w-4" />} onClick={actions?.onIncreaseIndent} disabled={disabled} />
         </div>

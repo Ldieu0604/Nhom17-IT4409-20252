@@ -47,6 +47,9 @@ import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { TableHeader } from '@tiptap/extension-table-header'
+import Details from '@tiptap/extension-details'
+import DetailsSummary from '@tiptap/extension-details-summary'
+import DetailsContent from '@tiptap/extension-details-content'
 
 type Props = {
   params: Promise<{
@@ -200,6 +203,9 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
           openOnClick: false, 
           autolink: true,
           defaultProtocol: 'https',
+          HTMLAttributes: {
+            class: "text-blue-600 underline cursor-pointer hover:text-blue-800",
+          },
         }),
         Table.configure({
           resizable: true, 
@@ -207,6 +213,14 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
         TableRow,
         TableHeader,
         TableCell,
+        Details.configure({
+          persist: true,
+          HTMLAttributes: {
+            class: 'details-node',
+          },
+        }),
+        DetailsSummary,
+        DetailsContent,
         Collaboration.configure({
           document: doc,
           field: "content",
@@ -235,7 +249,13 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
             "bulletList",
             "orderedList",
             "listItem",
+            "taskList",
+            "taskItem",
+            "details",          
+            "detailsSummary",  
+            "detailsContent",
           ],
+          alignments: ['left', 'center', 'right', 'justify']
         }),
         TaskList.configure({
           HTMLAttributes: {

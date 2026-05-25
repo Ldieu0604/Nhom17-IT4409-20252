@@ -698,12 +698,14 @@ export function AppLayout({
     onStyleChange: canEdit
     ? (style: string) => {
         const styleMap: { [key: string]: string } = {
-          "Normal text": "paragraph",
+          "Paragraph": "paragraph",
           "Heading 1": "h1",
           "Heading 2": "h2",
           "Heading 3": "h3",
         };
         const styleValue = styleMap[style] || style;
+        editor?.chain().focus().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run();
+
         if (styleValue === "paragraph") {
           editor?.chain().focus().setParagraph().run();
         } else if (styleValue === "h1") {
@@ -713,7 +715,6 @@ export function AppLayout({
         } else if (styleValue === "h3") {
           editor?.chain().focus().toggleHeading({ level: 3 }).run();
         }
-        
         console.log(`[STYLE] Changed to ${styleValue}`);
       }
     : undefined,
@@ -794,6 +795,12 @@ export function AppLayout({
           console.log("[ALIGN_RIGHT]", result ? "Success" : "Failed");
         }
       : undefined,
+    onJustify: canEdit 
+      ? () => {
+          const result = editor?.chain().focus().setTextAlign("justify").run();
+          console.log("[ALIGN_JUSTIFY]", result ? "Success" : "Failed");
+        }
+      : undefined,
     onBulletList: canEdit
       ? () => {
           if (!editor) return;
@@ -848,6 +855,18 @@ export function AppLayout({
           );
         }
       : undefined,
+    onToggleList: canEdit
+      ? () => {
+          if (!editor) return;
+          if (editor.isActive("details")) {
+            const result = editor.chain().focus().unsetDetails().run();
+            console.log("[TOGGLE_LIST_OFF]", result ? "Success" : "Failed");
+          } else {
+            const result = editor.chain().focus().setDetails().run();
+            console.log("[TOGGLE_LIST_ON]", result ? "Success" : "Failed");
+          }
+        }
+      : undefined,
     onDecreaseIndent: canEdit
       ? () => {
           if (!editor) return;
@@ -900,9 +919,19 @@ export function AppLayout({
       : undefined,
     onInsertTable: canEdit
       ? () => {
-          editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+          const rows = parseInt(window.prompt("Nhập số hàng:", "3") || "3", 10);
+          const cols = parseInt(window.prompt("Nhập số cột:", "3") || "3", 10);
+          if (rows > 0 && cols > 0) {
+            editor?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
+          }
         }
       : undefined,
+
+    onAddRowAfter: canEdit ? () => editor?.chain().focus().addRowAfter().run() : undefined,
+    onDeleteRow: canEdit ? () => editor?.chain().focus().deleteRow().run() : undefined,
+    onAddColumnAfter: canEdit ? () => editor?.chain().focus().addColumnAfter().run() : undefined,
+    onDeleteColumn: canEdit ? () => editor?.chain().focus().deleteColumn().run() : undefined,
+    onDeleteTable: canEdit ? () => editor?.chain().focus().deleteTable().run() : undefined,
     onAddComment: canComment ? handleStartCommentFromSelection : undefined,
   };
 
@@ -929,6 +958,8 @@ export function AppLayout({
   };
 
   const getCurrentAlignment = () => {
+    if (!editor) return "left";
+    if (editor.isActive({ textAlign: "justify" })) return "justify";
     if (editor?.isActive({ textAlign: "center" })) return "center";
     if (editor?.isActive({ textAlign: "right" })) return "right";
     return "left";
@@ -963,8 +994,13 @@ export function AppLayout({
       bold: editor?.isActive("bold") || false,
       italic: editor?.isActive("italic") || false,
       underline: editor?.isActive("underline") || false,
+      bulletList: editor?.isActive("bulletList") || false,
+      orderedList: editor?.isActive("orderedList") || false,
+      taskList: editor?.isActive("taskList") || false,
+      details: editor?.isActive("details") || editor?.isActive("detailsSummary") || false,
     },
     activeAlignment: getCurrentAlignment(),
+    isTableActive: editor?.isActive('table') || false,
   };
 
   const editorChildren = React.isValidElement<Record<string, unknown>>(children)
