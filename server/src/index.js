@@ -12,7 +12,8 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: 'https://nhom17-it-4409-20252.vercel.app',
+    allowedHeaders: ['Content-Type', 'Authorization',  "ngrok-skip-browser-warning"],
     credentials: true,
   })
 );

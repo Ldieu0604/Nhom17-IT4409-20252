@@ -83,6 +83,7 @@ const request = async (path, init = {}, token = null, retryOnUnauthorized = true
   // Gộp header mặc định, header auth và custom header
   const headers = {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(init.headers || {}),
   };
