@@ -52,6 +52,8 @@ export function FloatingCommentButton({ visible, onClick }: FloatingCommentButto
                 window.removeEventListener('scroll', updatePosition, true)
             }
         } else {
+            // Hide the floating action immediately when the selection disappears.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setPosition(null)
         }
     }, [visible])

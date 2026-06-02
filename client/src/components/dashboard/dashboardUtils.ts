@@ -1,43 +1,11 @@
 import { DashboardDocument, DashboardTemplate } from "@/services/document.service"
 
 export const FALLBACK_TEMPLATES: DashboardTemplate[] = [
-  { id: "blank", title: "Tài liệu trống", subtitle: "Bắt đầu từ trang trắng", accent: "primary", preview: "blank" },
-  { id: "meeting-notes", title: "Ghi chú cuộc họp", subtitle: "Agenda, quyết định, việc cần làm", accent: "sky", preview: "notes" },
-  { id: "project-proposal", title: "Đề xuất dự án", subtitle: "Mục tiêu, phạm vi, ngân sách", accent: "amber", preview: "proposal" },
-  { id: "report", title: "Báo cáo", subtitle: "Tổng hợp kết quả và số liệu", accent: "violet", preview: "report" },
+  { id: "blank", title: "Trang trống", subtitle: "Bắt đầu với một trang trắng", accent: "primary", preview: "blank" },
+  { id: "todo", title: "To-do List", subtitle: "Danh sách công việc với checkbox", accent: "sky", preview: "todo" },
+  { id: "task_table", title: "Bảng công việc", subtitle: "Theo dõi công việc bằng bảng", accent: "amber", preview: "task_table" },
 ]
-
-export function makeFallbackDocument(id: string, title: string, openedAt: string, initials: string, collaboratorCount: number): DashboardDocument {
-  return {
-    id,
-    title,
-    type: "document",
-    role: "editor",
-    owner: {
-      id: `${id}-owner`,
-      username: initials,
-      displayName: initials,
-      initials,
-    },
-    collaborators: [],
-    collaboratorCount,
-    isPublic: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    openedAt,
-    preview: "document",
-  }
-}
-
-export const FALLBACK_DOCUMENTS: DashboardDocument[] = [
-  makeFallbackDocument("demo-collab-docs", "Collab docs", "Đã mở 16:28", "TA", 3),
-  makeFallbackDocument("demo-weekly-report", "GSX Report", "Đã mở 09:29", "NT", 2),
-  makeFallbackDocument("demo-it4409", "20252 IT4788 Chiều T4", "4 thg 5, 2026", "HL", 4),
-  makeFallbackDocument("demo-marketplace", "Sàn thương mại điện tử cho quản đại", "29 thg 4, 2026", "QA", 1),
-  makeFallbackDocument("demo-google-doc", "Tài liệu project clone gg doc", "27 thg 4, 2026", "TN", 2),
-]
-
-export const ESSENTIAL_TEMPLATE_IDS = new Set(["blank", "meeting-notes", "project-proposal", "report"])
+export const ESSENTIAL_TEMPLATE_IDS = new Set(["blank", "todo", "task_table"])
 
 export const ACCENT_CLASSES: Record<string, { bar: string; soft: string; text: string; ring: string }> = {
   primary: { bar: "bg-primary", soft: "bg-primary/10", text: "text-primary", ring: "group-hover:border-primary" },

@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { LayoutGrid, List, RefreshCw } from "lucide-react"
 import { logoutUser } from "@/services/auth.service"
 import {
@@ -14,7 +15,6 @@ import {
 
 import {
   FALLBACK_TEMPLATES,
-  FALLBACK_DOCUMENTS,
   ESSENTIAL_TEMPLATE_IDS,
   getInitials,
   getUserAvatar,
@@ -27,12 +27,12 @@ import { TemplateCard } from "./TemplateCard"
 import { DocumentCard } from "./DocumentCard"
 import { DocumentListRow, DocumentSkeleton, EmptyState } from "./DocumentDashboardUI"
 
-export function DocumentDashboard() {
+export function DocumentDashboard({ recentOnly = true }: { recentOnly?: boolean }) {
   const router = useRouter()
   const [templates, setTemplates] = useState<DashboardTemplate[]>(FALLBACK_TEMPLATES)
-  const [documents, setDocuments] = useState<DashboardDocument[]>(FALLBACK_DOCUMENTS)
+  const [documents, setDocuments] = useState<DashboardDocument[]>([])
   const [search, setSearch] = useState("")
-  const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>("all")
+  const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>("me")
   const [sortMode, setSortMode] = useState<SortMode>("openedAt")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [loading, setLoading] = useState(true)
@@ -40,7 +40,6 @@ export function DocumentDashboard() {
   const [notice, setNotice] = useState("")
   const [userInitials, setUserInitials] = useState("T")
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
-  const localDraftCounter = useRef(0)
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -74,17 +73,18 @@ export function DocumentDashboard() {
         owner: ownerFilter,
         sort: effectiveSortMode,
         order: effectiveSortMode === "title" ? "asc" : "desc",
+        limit: recentOnly ? 2 : undefined,
       })
       if (isActive()) setDocuments(nextDocuments.length > 0 ? nextDocuments : [])
     } catch (error) {
       if (isActive() && !isSilent) {
-        setDocuments(FALLBACK_DOCUMENTS)
-        setNotice(error instanceof Error ? error.message : "Không thể tải tài liệu, đang hiển thị dữ liệu mẫu.")
+        setDocuments([])
+        setNotice(error instanceof Error ? error.message : "Không thể tải tài liệu.")
       }
     } finally {
       if (isActive()) setLoading(false)
     }
-  }, [ownerFilter, search, sortMode])
+  }, [ownerFilter, recentOnly, search, sortMode])
 
   useEffect(() => {
     let active = true
@@ -117,16 +117,10 @@ export function DocumentDashboard() {
     }
   }, [loadDocuments])
 
-  const filteredFallbackDocuments = useMemo(() => {
-    if (!notice || !search.trim()) return documents
-    const needle = search.trim().toLowerCase()
-    return documents.filter((document) => document.title.toLowerCase().includes(needle))
-  }, [documents, notice, search])
-
-  const visibleDocuments = notice ? filteredFallbackDocuments : documents
+  const visibleDocuments = documents
   const visibleTemplates = useMemo(() => {
     const essentialTemplates = templates.filter((template) => ESSENTIAL_TEMPLATE_IDS.has(template.id))
-    return (essentialTemplates.length > 0 ? essentialTemplates : templates).slice(0, 4)
+    return (essentialTemplates.length > 0 ? essentialTemplates : FALLBACK_TEMPLATES).slice(0, 3)
   }, [templates])
 
   async function handleCreateDocument(templateId: string) {
@@ -134,16 +128,16 @@ export function DocumentDashboard() {
     setNotice("")
     try {
       const document = await createDashboardDocument({ templateId })
-      setDocuments((currentDocuments) => [
-        document,
-        ...currentDocuments.filter((currentDocument) => currentDocument.id !== document.id),
-      ])
+      setDocuments((currentDocuments) => {
+        const nextDocuments = [
+          document,
+          ...currentDocuments.filter((currentDocument) => currentDocument.id !== document.id),
+        ]
+        return recentOnly ? nextDocuments.slice(0, 2) : nextDocuments
+      })
       router.push(`/documents/${document.id}`)
     } catch (error) {
-      localDraftCounter.current += 1
-      const localId = `draft-local-${localDraftCounter.current}`
-      setNotice(error instanceof Error ? error.message : "Không thể tạo tài liệu qua API, mở bản nháp cục bộ.")
-      router.push(`/documents/${localId}`)
+      setNotice(error instanceof Error ? error.message : "Không thể tạo tài liệu.")
     } finally {
       setCreatingTemplateId(null)
     }
@@ -217,6 +211,7 @@ export function DocumentDashboard() {
               <h2 className="text-xl font-semibold text-slate-800">Tài liệu gần đây</h2>
               <p className="mt-1 text-sm text-slate-500">Mở nhanh tài liệu của bạn và tài liệu được chia sẻ.</p>
             </div>
+            {recentOnly && <Link href="/dashboard" className="text-sm font-medium text-primary hover:underline">Xem tất cả</Link>}
 
             <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
               <label className="sr-only" htmlFor="owner-filter">Lọc chủ sở hữu</label>

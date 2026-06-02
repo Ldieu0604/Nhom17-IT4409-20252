@@ -39,6 +39,7 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
   const router = useRouter();
   const [userInfo, setUserInfo] = useState(getStoredUser());
   const [title, setTitle] = useState("Tài liệu chưa có tiêu đề");
+  const [template, setTemplate] = useState<"blank" | "todo" | "task_table">("blank");
   const [myPermission, setMyPermission] = useState<{
     role?: string | null;
     canEdit?: boolean;
@@ -119,11 +120,11 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     getDashboardDocument(documentId)
       .then((response) => {
         if (active) {
           setTitle(response.document.title || "Untitled document");
+          setTemplate(response.document.template || "blank");
           setMyPermission(response.myPermission || { canEdit: true });
           setLoading(false);
         }
@@ -165,6 +166,14 @@ function DocumentPageContent({ documentId }: { documentId: string }) {
       adapter.updateUser({ name: displayName, color });
     }
   }, [displayName, adapter, userInfo, yProvider]);
+
+  useEffect(() => {
+    if (!adapter || !yProvider) return;
+    const initialize = () => adapter.initializeTemplate(template);
+    if (yProvider.synced) initialize();
+    yProvider.on("sync", initialize);
+    return () => yProvider.off("sync", initialize);
+  }, [adapter, template, yProvider]);
 
   // Prevent Yjs awareness from timing out (default is 30s).
   // This ensures the remote cursor stays visible as long as the user is in the room.

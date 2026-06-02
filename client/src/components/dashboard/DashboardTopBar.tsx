@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CalendarDays, FileText, LogOut, Plus, Search, Settings } from "lucide-react"
+import { FileText, LogOut, Plus, Search, Settings } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,15 +29,15 @@ export function DashboardTopBar({
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-        <div className="flex min-w-0 shrink-0 items-center gap-3">
-          <div className="flex h-10 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
+        <Link href="/" title="Về trang chủ" className="flex min-w-0 shrink-0 items-center gap-3">
+          <span className="flex h-10 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
             <FileText className="h-6 w-6" />
-          </div>
-          <h1 className="hidden text-2xl font-medium tracking-normal text-slate-800 sm:block">Tài liệu</h1>
-        </div>
+          </span>
+        </Link>
 
         <nav className="hidden items-center gap-1 text-sm text-muted-foreground lg:flex">
-          <Link href="/" className="rounded-md px-3 py-2 transition hover:bg-secondary hover:text-foreground">Trang chủ</Link>
+          <Link href="/dashboard" className="rounded-md px-3 py-2 font-medium text-primary transition hover:bg-secondary">Tài liệu</Link>
+          <Link href="/workspaces" className="rounded-md px-3 py-2 transition hover:bg-secondary hover:text-foreground">Workspace</Link>
         </nav>
 
         <div className="mx-auto flex max-w-3xl flex-1 items-center">

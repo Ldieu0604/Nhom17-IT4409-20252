@@ -16,31 +16,24 @@ const COMMENT_ROLES = new Set(["owner", "editor", "commenter"]);
 const DOCUMENT_TEMPLATES = [
   {
     id: "blank",
-    title: "Blank document",
-    subtitle: "Start from a blank page",
+    title: "Trang trống",
+    subtitle: "Bắt đầu với một trang trắng",
     accent: "emerald",
     preview: "blank",
   },
   {
-    id: "meeting-notes",
-    title: "Meeting notes",
-    subtitle: "Agenda, decisions, and next steps",
+    id: "todo",
+    title: "To-do List",
+    subtitle: "Danh sách công việc với checkbox",
     accent: "sky",
-    preview: "notes",
+    preview: "todo",
   },
   {
-    id: "project-proposal",
-    title: "Project proposal",
-    subtitle: "Goals, scope, and budget",
+    id: "task_table",
+    title: "Bảng công việc",
+    subtitle: "Theo dõi công việc bằng bảng",
     accent: "amber",
-    preview: "proposal",
-  },
-  {
-    id: "report",
-    title: "Report",
-    subtitle: "Summaries and findings",
-    accent: "violet",
-    preview: "report",
+    preview: "task_table",
   },
 ];
 
@@ -48,7 +41,8 @@ const createDocumentSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   content: z.string().optional(),
   folderId: z.string().uuid().nullable().optional(),
-  templateId: z.string().optional(),
+  workspaceId: z.string().uuid().nullable().optional(),
+  templateId: z.enum(["blank", "todo", "task_table"]).optional(),
 });
 
 const updateDocumentSchema = z
@@ -147,7 +141,7 @@ function sanitizeTitle(title) {
 }
 
 function getDefaultTitle(templateId) {
-  if (!templateId || templateId === "blank") return "Untitled document";
+  if (!templateId || templateId === "blank") return "Untitled";
   const template = DOCUMENT_TEMPLATES.find((item) => item.id === templateId);
   return template ? template.title : "Untitled document";
 }
@@ -253,6 +247,8 @@ function formatListDocument(document, userId) {
     updatedAt: document.updatedAt,
     openedAt: document.openedAt,
     preview: "document",
+    template: document.template,
+    workspaceId: document.workspaceId,
   };
 }
 
@@ -264,6 +260,8 @@ function formatDetailedDocument(document) {
     ownerName: userName(document.owner),
     folderId: document.folderId,
     isStarred: document.isStarred,
+    template: document.template,
+    workspaceId: document.workspaceId,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
     openedAt: document.openedAt,
@@ -400,9 +398,16 @@ export const createDocument = async (req, res) => {
       return failure(res, 400, "Invalid input");
     }
 
-    const { title, content, folderId, templateId } = parsed.data;
+    const { title, content, folderId, templateId = "blank", workspaceId } = parsed.data;
     const finalTitle = sanitizeTitle(title || getDefaultTitle(templateId));
     const snapshot = content ? Buffer.from(content, "utf8") : null;
+
+    if (workspaceId) {
+      const membership = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId, userId: authUser.userId } },
+      });
+      if (!membership) return failure(res, 403, "You are not a member of this workspace.");
+    }
 
     const document = await prisma.$transaction(async (tx) => {
       const created = await tx.document.create({
@@ -412,6 +417,8 @@ export const createDocument = async (req, res) => {
           snapshot,
           snapshotVersion: 1,
           ownerId: authUser.userId,
+          workspaceId: workspaceId || null,
+          template: templateId,
           isPublic: false,
         },
         include: {
@@ -426,6 +433,17 @@ export const createDocument = async (req, res) => {
           role: "owner",
         },
       });
+
+      if (templateId === "task_table" && workspaceId) {
+        await tx.task.create({
+          data: {
+            title: "Công việc đầu tiên",
+            workspaceId,
+            documentId: created.id,
+            createdById: authUser.userId,
+          },
+        });
+      }
 
       return created;
     });
@@ -461,6 +479,8 @@ export const createDocument = async (req, res) => {
         updatedAt: document.updatedAt,
         openedAt: document.openedAt,
         preview: "document",
+        template: document.template,
+        workspaceId: document.workspaceId,
       },
       message: "Document created",
     });

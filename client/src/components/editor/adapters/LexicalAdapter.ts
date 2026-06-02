@@ -8,6 +8,7 @@ import {
   $isElementNode,
   $isParagraphNode,
   $createParagraphNode,
+  $createTextNode,
   FORMAT_TEXT_COMMAND,
   FORMAT_ELEMENT_COMMAND,
   UNDO_COMMAND,
@@ -32,6 +33,8 @@ import {
   REMOVE_LIST_COMMAND,
   $isListNode,
   ListNode,
+  $createListNode,
+  $createListItemNode,
 } from "@lexical/list";
 import {
   $wrapSelectionInMarkNode,
@@ -401,6 +404,33 @@ export class LexicalAdapter implements EditorAdapter {
     }
   }
 
+  initializeTemplate(template: "blank" | "todo" | "task_table") {
+    if (template === "blank" || !this._isEmpty) return;
+    this.editor.update(() => {
+      const root = $getRoot();
+      if (root.getTextContent().trim()) return;
+      root.clear();
+      const heading = $createHeadingNode("h1").append(
+        $createTextNode(template === "todo" ? "Việc cần làm" : "Bảng công việc"),
+      );
+      root.append(heading);
+      if (template === "todo") {
+        const list = $createListNode("check");
+        ["Thêm công việc mới", "Đánh dấu khi đã hoàn thành", "Chia sẻ với nhóm"].forEach((text) => {
+          list.append($createListItemNode().append($createTextNode(text)));
+        });
+        root.append(list);
+      } else {
+        const paragraph = $createParagraphNode();
+        root.append(paragraph);
+        paragraph.select();
+      }
+    });
+    if (template === "task_table") {
+      this.editor.dispatchCommand(INSERT_TABLE_COMMAND, { rows: "4", columns: "5", includeHeaders: true });
+    }
+  }
+
   liftListItem() { this.editor.dispatchCommand(OUTDENT_CONTENT_COMMAND, undefined); }
   sinkListItem() { this.editor.dispatchCommand(INDENT_CONTENT_COMMAND, undefined); }
 
@@ -600,4 +630,3 @@ export class LexicalAdapter implements EditorAdapter {
     return _isInsideTable;
   }
 }
-

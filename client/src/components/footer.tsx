@@ -13,9 +13,9 @@ const teamMembers = [
     email: "tranthib@coworkhub.vn",
   },
   {
-    name: "Lê Văn C",
+    name: "Hoàng Thuỳ Linh",
     role: "UI/UX Designer",
-    email: "levanc@coworkhub.vn",
+    email: "hoangthuylinh@coworkhub.vn",
   },
   {
     name: "Phạm Thị D",
@@ -91,7 +91,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-sidebar-border pt-6 sm:flex-row">
           <p className="text-sm text-sidebar-foreground/60">
-            © 2026 CoWorkHub. Được phát triển bởi sinh viên UIT.
+            © 2026 CoWorkHub. Được phát triển bởi sinh viên HUST.
           </p>
           <div className="flex gap-4 text-sm text-sidebar-foreground/60">
             <Link href="#" className="transition-colors hover:text-sidebar-foreground">

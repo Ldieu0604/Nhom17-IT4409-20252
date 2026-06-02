@@ -57,6 +57,7 @@ export interface EditorAdapter {
   insertLink(url: string | null): void;
   insertImage(url: string): void;
   insertHorizontalLine(): void;
+  initializeTemplate(template: "blank" | "todo" | "task_table"): void;
 
   readonly isLink: boolean;
   readonly isInsideTable: boolean;

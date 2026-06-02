@@ -31,6 +31,8 @@ export function CommentItem({
 
     useEffect(() => {
         if (!isEditing) {
+            // Keep the local editor draft aligned with server updates while the field is idle.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setDraftContent(comment.content)
         }
     }, [comment.content, isEditing])

@@ -49,7 +49,7 @@ export function Header() {
             <FileText className="h-4 w-4" />
             Tài liệu
           </Link>
-          <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+          <Link href="/workspaces" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
             <LayoutGrid className="h-4 w-4" />
             Workspace
           </Link>
@@ -146,7 +146,7 @@ export function Header() {
               <FileText className="h-4 w-4" />
               Tài liệu
             </Link>
-            <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
+            <Link href="/workspaces" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
               <LayoutGrid className="h-4 w-4" />
               Workspace
             </Link>

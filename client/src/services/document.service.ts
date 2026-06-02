@@ -33,6 +33,8 @@ export type DashboardDocument = {
   updatedAt: string
   openedAt: string
   preview: string
+  template?: "blank" | "todo" | "task_table"
+  workspaceId?: string | null
 }
 
 export type DocumentShareRole = "viewer" | "commenter" | "editor"
@@ -93,6 +95,7 @@ type DocumentQuery = {
   owner?: "all" | "me" | "shared"
   sort?: "openedAt" | "updatedAt" | "title"
   order?: "asc" | "desc"
+  limit?: number
 }
 
 const DEFAULT_API_URL = "http://localhost:4000/api"
@@ -120,7 +123,7 @@ function readToken() {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}, retryOnUnauthorized = true) {
+export async function apiRequest<T>(path: string, init: RequestInit = {}, retryOnUnauthorized = true) {
   const token = readToken()
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     credentials: "include",
@@ -143,7 +146,7 @@ async function request<T>(path: string, init: RequestInit = {}, retryOnUnauthori
     if (response.status === 401 && retryOnUnauthorized) {
       try {
         await refreshSession()
-        return request<T>(path, init, false)
+        return apiRequest<T>(path, init, false)
       } catch {
         clearSession()
       }
@@ -156,7 +159,7 @@ async function request<T>(path: string, init: RequestInit = {}, retryOnUnauthori
 }
 
 export async function listDashboardTemplates() {
-  return request<DashboardTemplate[]>("/documents/templates")
+  return apiRequest<DashboardTemplate[]>("/documents/templates")
 }
 
 export async function listDashboardDocuments(query: DocumentQuery = {}) {
@@ -165,54 +168,57 @@ export async function listDashboardDocuments(query: DocumentQuery = {}) {
   if (query.owner) params.set("owner", query.owner)
   if (query.sort) params.set("sort", query.sort)
   if (query.order) params.set("order", query.order)
+  if (query.limit) params.set("limit", String(query.limit))
 
   const suffix = params.toString() ? `?${params.toString()}` : ""
-  return request<DashboardDocument[]>(`/documents${suffix}`)
+  return apiRequest<DashboardDocument[]>(`/documents${suffix}`)
 }
 
 export async function createDashboardDocument({
   title,
   templateId = "blank",
+  workspaceId,
 }: {
   title?: string
   templateId?: string
+  workspaceId?: string | null
 }) {
-  return request<DashboardDocument>("/documents", {
+  return apiRequest<DashboardDocument>("/documents", {
     method: "POST",
-    body: JSON.stringify({ title, templateId }),
+    body: JSON.stringify({ title, templateId, workspaceId }),
   })
 }
 
 export async function getDashboardDocument(documentId: string) {
-  return request<DocumentDetailResponse>(`/documents/${documentId}`)
+  return apiRequest<DocumentDetailResponse>(`/documents/${documentId}`)
 }
 
 export async function renameDashboardDocument(documentId: string, title: string) {
-  return request<DocumentDetailResponse>(`/documents/${documentId}`, {
+  return apiRequest<DocumentDetailResponse>(`/documents/${documentId}`, {
     method: "PATCH",
     body: JSON.stringify({ title }),
   })
 }
 
 export async function deleteDashboardDocument(documentId: string) {
-  return request<{ success: boolean; message: string }>(`/documents/${documentId}`, {
+  return apiRequest<{ success: boolean; message: string }>(`/documents/${documentId}`, {
     method: "DELETE",
   })
 }
 
 export async function getDocumentSnapshot(documentId: string) {
-  return request<DocumentSnapshot>(`/documents/${documentId}/snapshot`)
+  return apiRequest<DocumentSnapshot>(`/documents/${documentId}/snapshot`)
 }
 
 export async function saveDocumentSnapshot(documentId: string, snapshot: string) {
-  return request<DocumentSnapshot>(`/documents/${documentId}/snapshot`, {
+  return apiRequest<DocumentSnapshot>(`/documents/${documentId}/snapshot`, {
     method: "PUT",
     body: JSON.stringify({ snapshot }),
   })
 }
 
 export async function getDocumentShareSettings(documentId: string) {
-  return request<DocumentShareSettings>(`/documents/${documentId}/share`)
+  return apiRequest<DocumentShareSettings>(`/documents/${documentId}/share`)
 }
 
 export async function updateDocumentShareSettings(
@@ -225,14 +231,14 @@ export async function updateDocumentShareSettings(
     removePermissionId?: string
   },
 ) {
-  return request<DocumentShareSettings>(`/documents/${documentId}/share`, {
+  return apiRequest<DocumentShareSettings>(`/documents/${documentId}/share`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   })
 }
 
 export async function listDocumentComments(documentId: string) {
-  return request<DocumentComment[]>(`/documents/${documentId}/comments`)
+  return apiRequest<DocumentComment[]>(`/documents/${documentId}/comments`)
 }
 
 export async function createDocumentComment(
@@ -244,14 +250,14 @@ export async function createDocumentComment(
     toPos?: number | null
   },
 ) {
-  return request<DocumentComment>(`/documents/${documentId}/comments`, {
+  return apiRequest<DocumentComment>(`/documents/${documentId}/comments`, {
     method: "POST",
     body: JSON.stringify(payload),
   })
 }
 
 export async function deleteDocumentComment(documentId: string, commentId: string) {
-  return request<{ id: string }>(`/documents/${documentId}/comments/${commentId}`, {
+  return apiRequest<{ id: string }>(`/documents/${documentId}/comments/${commentId}`, {
     method: "DELETE",
   })
 }
@@ -261,7 +267,7 @@ export async function updateDocumentComment(
   commentId: string,
   payload: { content: string },
 ) {
-  return request<DocumentComment>(`/documents/${documentId}/comments/${commentId}`, {
+  return apiRequest<DocumentComment>(`/documents/${documentId}/comments/${commentId}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
   })

@@ -45,14 +45,6 @@ export function HeroSection() {
           </span>
         </h1>
 
-        {/* CTA Buttons */}
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button size="lg" className="gap-2 px-8">
-            Bắt đầu miễn phí
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-
         {/* Online Users */}
         <div className="mt-12 flex items-center justify-center gap-3">
           <div className="flex -space-x-3">

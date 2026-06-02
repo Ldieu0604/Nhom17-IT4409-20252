@@ -37,6 +37,8 @@ export function VerticalPageRuler({ margins, onMarginsChange }: Omit<VerticalPag
 
     useEffect(() => {
         if (!draggingHandle) {
+            // External margin changes must reset the local drag preview.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLocalMargins(margins)
             localMarginsRef.current = margins
         }

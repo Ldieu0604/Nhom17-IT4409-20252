@@ -22,6 +22,7 @@ import type { EditorSelectionRange } from "@/types/editor-selection";
 import type { DocumentComment } from "@/types/comment";
 import { DEFAULT_PAGE_MARGINS, type PageMargins } from "@/types/page-layout";
 import { CommentPanel } from "@/components/comments/CommentPanel";
+import { DocumentTasksPanel } from "@/components/tasks/DocumentTasksPanel";
 import { EditorAdapter } from "@/types/editor-adapter";
 import {
   createDocumentComment,
@@ -63,6 +64,7 @@ export function AppLayout({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [isCommentPanelOpen, setIsCommentPanelOpen] = useState(false);
+  const [isTaskPanelOpen, setIsTaskPanelOpen] = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [commentDraftRange, setCommentDraftRange] =
@@ -115,6 +117,14 @@ export function AppLayout({
     };
   }, [loadComments]);
 
+  const removeCommentMarkById = useCallback(
+    (commentId: string) => {
+      if (!editor) return;
+      editor.removeCommentMarkById(commentId);
+    },
+    [editor],
+  );
+
   useEventListener(({ event }) => {
     if (
       event.type !== "DOCUMENT_COMMENT_CHANGED" ||
@@ -165,14 +175,6 @@ export function AppLayout({
     setIsComposerOpen(false);
     setCommentDraftRange(null);
   }, [commentDraftRange, removeCommentMark]);
-
-  const removeCommentMarkById = useCallback(
-    (commentId: string) => {
-      if (!editor) return;
-      editor.removeCommentMarkById(commentId);
-    },
-    [editor],
-  );
 
   const deleteComment = useCallback(
     async (commentId: string) => {
@@ -582,6 +584,12 @@ export function AppLayout({
         }}
         onToggleComments={() => {
           setIsCommentPanelOpen((open) => !open);
+          setIsTaskPanelOpen(false);
+          clearDraftComment();
+        }}
+        onToggleTasks={() => {
+          setIsTaskPanelOpen((open) => !open);
+          setIsCommentPanelOpen(false);
           clearDraftComment();
         }}
       />
@@ -657,6 +665,11 @@ export function AppLayout({
                 canEditComment={canManageComment}
                 canDeleteComment={canManageComment}
               />
+            </div>
+          )}
+          {isTaskPanelOpen && (
+            <div className="hidden w-80 shrink-0 md:block">
+              <DocumentTasksPanel documentId={documentId} onClose={() => setIsTaskPanelOpen(false)} />
             </div>
           )}
         </div>

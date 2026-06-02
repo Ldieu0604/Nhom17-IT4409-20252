@@ -15,7 +15,10 @@ async function main() {
   await prisma.comment.deleteMany();
   await prisma.snapshot.deleteMany();
   await prisma.permission.deleteMany();
+  await prisma.task.deleteMany();
   await prisma.document.deleteMany();
+  await prisma.workspaceMember.deleteMany();
+  await prisma.workspace.deleteMany();
   await prisma.user.deleteMany();
 
   const hashedPassword = await bcrypt.hash("password123", 10);

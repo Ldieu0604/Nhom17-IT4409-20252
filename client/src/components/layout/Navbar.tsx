@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Download, FileText, LogOut, MessageSquareText, Settings } from "lucide-react"
+import { CheckSquare, Download, FileText, LogOut, MessageSquareText, Settings } from "lucide-react"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -45,12 +45,14 @@ export function Navbar({
     onExportPdf,
     onRename,
     onToggleComments,
+    onToggleTasks,
 }: {
     documentId: string
     title?: string
     onExportPdf?: () => void
     onRename?: (title: string) => Promise<void> | void
     onToggleComments?: () => void
+    onToggleTasks?: () => void
 }) {
     const router = useRouter()
     const [saving, setSaving] = useState(false)
@@ -148,6 +150,14 @@ export function Navbar({
                 >
                     <Download className="h-4 w-4" />
                     Xuất PDF
+                </button>
+                <button
+                    type="button"
+                    onClick={onToggleTasks}
+                    className="hidden h-9 items-center gap-2 rounded-md px-3 text-sm text-slate-700 transition hover:bg-slate-100 md:flex"
+                >
+                    <CheckSquare className="h-4 w-4" />
+                    Công việc
                 </button>
                 <button
                     type="button"
