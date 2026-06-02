@@ -49,6 +49,12 @@ function formatUser(user) {
 function formatTask(task) {
   return { ...task, assignee: formatUser(task.assignee), createdBy: formatUser(task.createdBy) };
 }
+const taskInclude = {
+  assignee: true,
+  createdBy: true,
+  document: { select: { id: true, title: true } },
+  workspace: { select: { id: true, name: true } },
+};
 async function getMembership(workspaceId, currentUserId) {
   return prisma.workspaceMember.findUnique({ where: { workspaceId_userId: { workspaceId, userId: currentUserId } } });
 }
@@ -144,6 +150,17 @@ export async function getWorkspace(req, res) {
   }
 }
 
+export async function deleteWorkspace(req, res) {
+  try {
+    if (!await requireMembership(req, res, true)) return;
+    await prisma.workspace.delete({ where: { id: req.params.workspaceId } });
+    return ok(res, 200, { id: req.params.workspaceId }, "Workspace deleted.");
+  } catch (error) {
+    console.error("[deleteWorkspace]", error);
+    return fail(res, 500, "Internal server error.");
+  }
+}
+
 export async function addWorkspaceMember(req, res) {
   try {
     if (!await requireMembership(req, res, true)) return;
@@ -177,6 +194,24 @@ export async function createTask(req, res) {
     return ok(res, 201, formatTask(task), "Task created.");
   } catch (error) {
     console.error("[createTask]", error);
+    return fail(res, 500, "Internal server error.");
+  }
+}
+
+export async function listMyTasks(req, res) {
+  try {
+    const currentUserId = userId(req);
+    const tasks = await prisma.task.findMany({
+      where: {
+        assigneeId: currentUserId,
+        workspace: { members: { some: { userId: currentUserId } } },
+      },
+      include: taskInclude,
+      orderBy: [{ dueDate: "asc" }, { updatedAt: "desc" }],
+    });
+    return ok(res, 200, tasks.map(formatTask));
+  } catch (error) {
+    console.error("[listMyTasks]", error);
     return fail(res, 500, "Internal server error.");
   }
 }

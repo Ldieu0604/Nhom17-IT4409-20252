@@ -15,6 +15,7 @@ async function main() {
   await prisma.comment.deleteMany();
   await prisma.snapshot.deleteMany();
   await prisma.permission.deleteMany();
+  await prisma.calendarEvent.deleteMany();
   await prisma.task.deleteMany();
   await prisma.document.deleteMany();
   await prisma.workspaceMember.deleteMany();

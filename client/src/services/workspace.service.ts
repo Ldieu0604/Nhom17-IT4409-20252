@@ -25,7 +25,9 @@ export type WorkspaceTask = {
   completed: boolean
   dueDate?: string | null
   completedAt?: string | null
+  createdAt: string
   updatedAt: string
+  workspace?: { id: string; name: string }
 }
 export type Workspace = {
   id: string
@@ -46,6 +48,8 @@ export const listWorkspaces = () => apiRequest<Workspace[]>("/workspaces")
 export const getWorkspace = (workspaceId: string) => apiRequest<Workspace>(`/workspaces/${workspaceId}`)
 export const createWorkspace = (payload: { name: string; description?: string }) =>
   apiRequest<Workspace>("/workspaces", { method: "POST", body: JSON.stringify(payload) })
+export const deleteWorkspace = (workspaceId: string) =>
+  apiRequest<{ id: string }>(`/workspaces/${workspaceId}`, { method: "DELETE" })
 export const addWorkspaceMember = (workspaceId: string, email: string) =>
   apiRequest<WorkspaceMember>(`/workspaces/${workspaceId}/members`, { method: "POST", body: JSON.stringify({ email }) })
 export const createWorkspaceTask = (workspaceId: string, payload: Partial<WorkspaceTask> & { title: string }) =>
@@ -54,3 +58,4 @@ export const updateWorkspaceTask = (workspaceId: string, taskId: string, payload
   apiRequest<WorkspaceTask>(`/workspaces/${workspaceId}/tasks/${taskId}`, { method: "PATCH", body: JSON.stringify(payload) })
 export const listDocumentTasks = (documentId: string) =>
   apiRequest<WorkspaceTask[]>(`/workspaces/documents/${documentId}/tasks`)
+export const listMyWorkspaceTasks = () => apiRequest<WorkspaceTask[]>("/workspaces/my/tasks")

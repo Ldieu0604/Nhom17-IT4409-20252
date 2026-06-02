@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import documentRoutes from './routes/document.routes.js';
 import workspaceRoutes from './routes/workspace.routes.js';
+import calendarRoutes from './routes/calendar.routes.js';
 const app = express();
 
 // Core middleware
@@ -31,6 +32,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/workspaces', workspaceRoutes);
+app.use('/api/calendar', calendarRoutes);
 // app.use('/api/permissions', require('./routes/permission.routes'));
 // app.use('/api/snapshots', require('./routes/snapshot.routes'));
 // app.use('/api/comments', require('./routes/comment.routes'));

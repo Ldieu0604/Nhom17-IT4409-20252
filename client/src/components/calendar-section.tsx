@@ -1,318 +1,172 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { createCalendarEvent, getMyCalendarEvents, type CalendarEvent } from "@/services/calendar.service"
 import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Clock,
-  MapPin,
-  Users,
-  Video,
-} from "lucide-react"
-
-const INITIAL_EVENTS = [
-  {
-    id: 1,
-    title: "Sprint Planning Meeting",
-    time: "09:00 - 10:30",
-    type: "meeting",
-    color: "bg-primary",
-    location: "Google Meet",
-    isOnline: true,
-    attendees: [
-      { name: "Nguyễn A", initials: "NA" },
-      { name: "Trần B", initials: "TB" },
-      { name: "Lê C", initials: "LC" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Design Review - Landing Page",
-    time: "14:00 - 15:00",
-    type: "review",
-    color: "bg-accent",
-    location: "Phòng họp A3",
-    isOnline: false,
-    attendees: [
-      { name: "Lê C", initials: "LC" },
-      { name: "Phạm D", initials: "PD" },
-    ],
-  },
-  {
-    id: 3,
-    title: "Code Review Session",
-    time: "16:00 - 17:00",
-    type: "work",
-    color: "bg-chart-3",
-    location: "Zoom",
-    isOnline: true,
-    attendees: [
-      { name: "Nguyễn A", initials: "NA" },
-      { name: "Hoàng E", initials: "HE" },
-    ],
-  },
-]
-
-const upcomingTasks = [
-  {
-    id: 1,
-    title: "Hoàn thành API documentation",
-    deadline: "Hôm nay, 18:00",
-    priority: "high",
-    project: "Team Alpha",
-  },
-  {
-    id: 2,
-    title: "Review PR #234",
-    deadline: "Ngày mai, 10:00",
-    priority: "medium",
-    project: "Product Development",
-  },
-  {
-    id: 3,
-    title: "Update wireframes",
-    deadline: "Thứ 5, 14:00",
-    priority: "low",
-    project: "UI/UX Design",
-  },
-]
+  getWorkspace,
+  listMyWorkspaceTasks,
+  listWorkspaces,
+  type Workspace,
+  type WorkspaceTask,
+} from "@/services/workspace.service"
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, ExternalLink, MapPin, Plus, Users, Video, X } from "lucide-react"
 
 const priorityColors = {
-  high: "bg-destructive/10 text-destructive border-destructive/20",
-  medium: "bg-chart-4/10 text-chart-4 border-chart-4/20",
-  low: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  high: "border-red-200 bg-red-50 text-red-600",
+  medium: "border-amber-200 bg-amber-50 text-amber-700",
+  low: "border-emerald-200 bg-emerald-50 text-emerald-700",
+}
+const priorityLabels = { high: "Cao", medium: "Trung bình", low: "Thấp" }
+
+function dateInputValue(date: Date) {
+  const offset = date.getTimezoneOffset()
+  return new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 10)
+}
+function sameDay(value: string, date: Date) {
+  const item = new Date(value)
+  return item.getFullYear() === date.getFullYear() && item.getMonth() === date.getMonth() && item.getDate() === date.getDate()
+}
+function initials(name: string) {
+  return name.split(" ").filter(Boolean).slice(-2).map((part) => part[0]).join("").toUpperCase()
+}
+function timeRange(event: CalendarEvent) {
+  const format = (value: string) => new Date(value).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+  return `${format(event.startAt)} - ${format(event.endAt)}`
+}
+function deadlineLabel(value: string) {
+  const date = new Date(value)
+  const now = new Date()
+  const tomorrow = new Date(now)
+  tomorrow.setDate(now.getDate() + 1)
+  const time = date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+  if (sameDay(value, now)) return `Hôm nay, ${time}`
+  if (sameDay(value, tomorrow)) return `Ngày mai, ${time}`
+  return date.toLocaleDateString("vi-VN", { day: "numeric", month: "numeric", year: "numeric" }) + `, ${time}`
+}
+function eventLocation(event: CalendarEvent) {
+  if (event.meetingUrl) {
+    try {
+      const host = new URL(event.meetingUrl).hostname.replace(/^www\./, "")
+      return host.includes("meet.google") ? "Google Meet" : host.includes("zoom") ? "Zoom" : host
+    } catch {
+      return "Link tham gia"
+    }
+  }
+  return event.location || "Chưa có địa điểm"
 }
 
-const priorityLabels = {
-  high: "Cao",
-  medium: "Trung bình",
-  low: "Thấp",
+function EventDialog({ workspaces, selectedDate, onClose, onCreated }: {
+  workspaces: Workspace[]
+  selectedDate: Date
+  onClose: () => void
+  onCreated: (event: CalendarEvent) => void
+}) {
+  const [workspace, setWorkspace] = useState<Workspace | null>(null)
+  const [form, setForm] = useState({
+    title: "", date: dateInputValue(selectedDate), start: "09:00", end: "10:00",
+    place: "", workspaceId: "", documentId: "", description: "",
+  })
+  const [participantIds, setParticipantIds] = useState<string[]>([])
+  const [error, setError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (form.workspaceId) getWorkspace(form.workspaceId).then(setWorkspace).catch((e) => setError(e.message))
+  }, [form.workspaceId])
+
+  function changeWorkspace(workspaceId: string) {
+    setWorkspace(null)
+    setParticipantIds([])
+    setForm((current) => ({ ...current, workspaceId, documentId: "" }))
+  }
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault()
+    setError("")
+    setSubmitting(true)
+    try {
+      const place = form.place.trim()
+      const isUrl = /^https?:\/\//i.test(place)
+      const created = await createCalendarEvent({
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        startAt: new Date(`${form.date}T${form.start}`).toISOString(),
+        endAt: new Date(`${form.date}T${form.end}`).toISOString(),
+        location: place && !isUrl ? place : null,
+        meetingUrl: place && isUrl ? place : null,
+        workspaceId: form.workspaceId || null,
+        documentId: form.documentId || null,
+        participantIds,
+      })
+      onCreated(created)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không thể tạo sự kiện.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4">
+    <form onSubmit={submit} className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border bg-white p-5 shadow-xl">
+      <button type="button" onClick={onClose} className="absolute right-4 top-4 text-slate-500"><X className="h-4 w-4" /></button>
+      <h3 className="text-lg font-semibold">Thêm sự kiện</h3>
+      <p className="mt-1 text-sm text-slate-500">Sự kiện mới mặc định thuộc về bạn.</p>
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label className="sm:col-span-2"><span className="text-xs font-medium">Tiêu đề sự kiện</span><input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="mt-1 w-full rounded-md border px-3 py-2 text-sm" /></label>
+        <label><span className="text-xs font-medium">Ngày</span><input required type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="mt-1 w-full rounded-md border px-3 py-2 text-sm" /></label>
+        <span className="grid grid-cols-2 gap-2"><label><span className="text-xs font-medium">Bắt đầu</span><input required type="time" value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} className="mt-1 w-full rounded-md border px-3 py-2 text-sm" /></label><label><span className="text-xs font-medium">Kết thúc</span><input required type="time" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} className="mt-1 w-full rounded-md border px-3 py-2 text-sm" /></label></span>
+        <label className="sm:col-span-2"><span className="text-xs font-medium">Địa điểm hoặc meeting link</span><input value={form.place} onChange={(e) => setForm({ ...form, place: e.target.value })} className="mt-1 w-full rounded-md border px-3 py-2 text-sm" /></label>
+        <label><span className="text-xs font-medium">Workspace liên quan</span><select value={form.workspaceId} onChange={(e) => changeWorkspace(e.target.value)} className="mt-1 w-full rounded-md border px-3 py-2 text-sm"><option value="">Không gắn workspace</option>{workspaces.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label><span className="text-xs font-medium">Tài liệu liên quan</span><select disabled={!workspace} value={form.documentId} onChange={(e) => setForm({ ...form, documentId: e.target.value })} className="mt-1 w-full rounded-md border px-3 py-2 text-sm disabled:bg-slate-50"><option value="">Không gắn tài liệu</option>{workspace?.documents?.map((document) => <option key={document.id} value={document.id}>{document.title}</option>)}</select></label>
+        <label className="sm:col-span-2"><span className="text-xs font-medium">Mô tả</span><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1 min-h-20 w-full rounded-md border px-3 py-2 text-sm" /></label>
+      </div>
+      {workspace && <div className="mt-3"><p className="text-xs font-medium">Người tham gia</p><div className="mt-2 flex flex-wrap gap-2">{workspace.members.map((member) => <label key={member.id} className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs"><input type="checkbox" checked={participantIds.includes(member.user.id)} onChange={(e) => setParticipantIds((ids) => e.target.checked ? [...ids, member.user.id] : ids.filter((id) => id !== member.user.id))} />{member.user.displayName}</label>)}</div></div>}
+      <div className="mt-5 flex justify-end gap-2"><Button type="button" variant="ghost" onClick={onClose}>Hủy</Button><Button disabled={submitting}>{submitting ? "Đang tạo..." : "Tạo sự kiện"}</Button></div>
+    </form>
+  </div>
 }
 
 export function CalendarSection() {
-  const [currentDate] = useState(new Date())
-  const [events, setEvents] = useState(INITIAL_EVENTS)
-  const [showEventForm, setShowEventForm] = useState(false)
-  const [newEvent, setNewEvent] = useState({
-    title: "",
-    start: "",
-    end: "",
-    location: "",
-    isOnline: true,
-  })
-  
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("vi-VN", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
-  }
+  const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [tasks, setTasks] = useState<WorkspaceTask[]>([])
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
+  const [showDialog, setShowDialog] = useState(false)
+  const [error, setError] = useState("")
 
-  return (
-    <section id="calendar" className="py-8">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Lịch & Công việc</h2>
-          <p className="text-sm text-muted-foreground">
-            Quản lý thời gian và deadline của bạn
-          </p>
-        </div>
-        <Button className="gap-2" onClick={() => setShowEventForm((visible) => !visible)}>
-          <Plus className="h-4 w-4" />
-          Thêm sự kiện
-        </Button>
-      </div>
+  const load = useCallback(async () => {
+    try {
+      const [nextEvents, nextTasks, nextWorkspaces] = await Promise.all([getMyCalendarEvents(), listMyWorkspaceTasks(), listWorkspaces()])
+      setEvents(nextEvents); setTasks(nextTasks); setWorkspaces(nextWorkspaces)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Không thể tải lịch và công việc.")
+    }
+  }, [])
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => { void load() }, 0)
+    return () => window.clearTimeout(timeoutId)
+  }, [load])
 
-      {showEventForm && (
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <form
-              className="grid gap-3 md:grid-cols-[1.4fr_0.8fr_0.8fr_1fr_auto]"
-              onSubmit={(event) => {
-                event.preventDefault()
-                if (!newEvent.title.trim()) return
+  const visibleEvents = useMemo(() => events.filter((event) => sameDay(event.startAt, selectedDate)), [events, selectedDate])
+  const deadlines = useMemo(() => tasks.filter((task) => !task.completed && task.status !== "done" && task.dueDate).sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()).slice(0, 5), [tasks])
+  const changeDay = (days: number) => setSelectedDate((current) => { const next = new Date(current); next.setDate(next.getDate() + days); return next })
 
-                setEvents((currentEvents) => [
-                  ...currentEvents,
-                  {
-                    id: Date.now(),
-                    title: newEvent.title.trim(),
-                    time: `${newEvent.start || "09:00"} - ${newEvent.end || "10:00"}`,
-                    type: "meeting",
-                    color: "bg-primary",
-                    location: newEvent.location.trim() || (newEvent.isOnline ? "Google Meet" : "Phòng họp"),
-                    isOnline: newEvent.isOnline,
-                    attendees: [{ name: "Bạn", initials: "BT" }],
-                  },
-                ])
-                setNewEvent({ title: "", start: "", end: "", location: "", isOnline: true })
-                setShowEventForm(false)
-              }}
-            >
-              <input
-                value={newEvent.title}
-                onChange={(event) => setNewEvent((prev) => ({ ...prev, title: event.target.value }))}
-                placeholder="Tên sự kiện"
-                className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                required
-              />
-              <input
-                value={newEvent.start}
-                onChange={(event) => setNewEvent((prev) => ({ ...prev, start: event.target.value }))}
-                type="time"
-                className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary"
-              />
-              <input
-                value={newEvent.end}
-                onChange={(event) => setNewEvent((prev) => ({ ...prev, end: event.target.value }))}
-                type="time"
-                className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary"
-              />
-              <input
-                value={newEvent.location}
-                onChange={(event) => setNewEvent((prev) => ({ ...prev, location: event.target.value }))}
-                placeholder="Địa điểm hoặc link"
-                className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary"
-              />
-              <Button type="submit">Tạo</Button>
-            </form>
-            <label className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={newEvent.isOnline}
-                onChange={(event) => setNewEvent((prev) => ({ ...prev, isOnline: event.target.checked }))}
-              />
-              Sự kiện online
-            </label>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Today's Schedule */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Lịch hôm nay</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm font-medium">
-                  {formatDate(currentDate)}
-                </span>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {events.map((event) => (
-                <div
-                  key={event.id}
-                  className="group flex gap-4 rounded-lg border p-4 transition-all hover:border-primary/50 hover:shadow-sm"
-                >
-                  <div className={`h-full w-1 shrink-0 rounded-full ${event.color}`} />
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5" />
-                            {event.time}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {event.isOnline ? (
-                              <Video className="h-3.5 w-3.5" />
-                            ) : (
-                              <MapPin className="h-3.5 w-3.5" />
-                            )}
-                            {event.location}
-                          </span>
-                        </div>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="opacity-0 transition-opacity group-hover:opacity-100"
-                      >
-                        Tham gia
-                      </Button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                      <div className="flex -space-x-2">
-                        {event.attendees.map((attendee, i) => (
-                          <Avatar key={i} className="h-6 w-6 border-2 border-card">
-                            <AvatarImage src="" />
-                            <AvatarFallback className="text-[10px]">
-                              {attendee.initials}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {event.attendees.length} người tham gia
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Upcoming Tasks */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Deadline sắp tới</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {upcomingTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="rounded-lg border p-3 transition-all hover:border-primary/50"
-                >
-                  <div className="mb-2 flex items-start justify-between">
-                    <h4 className="line-clamp-2 text-sm font-medium">
-                      {task.title}
-                    </h4>
-                    <Badge
-                      variant="outline"
-                      className={`shrink-0 text-[10px] ${
-                        priorityColors[task.priority as keyof typeof priorityColors]
-                      }`}
-                    >
-                      {priorityLabels[task.priority as keyof typeof priorityLabels]}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {task.deadline}
-                    </span>
-                    <span className="truncate">{task.project}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" className="mt-4 w-full" size="sm">
-              Xem tất cả công việc
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </section>
-  )
+  return <section id="calendar" className="py-8">
+    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="text-2xl font-bold">Lịch & Công việc</h2><p className="text-sm text-muted-foreground">Quản lý thời gian và deadline của bạn</p></div><Button className="gap-2" onClick={() => setShowDialog(true)}><Plus className="h-4 w-4" />Thêm sự kiện</Button></div>
+    {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+    <div className="grid gap-6 lg:grid-cols-3">
+      <Card className="lg:col-span-2"><CardHeader className="pb-3"><div className="flex flex-wrap items-center justify-between gap-2"><CardTitle className="text-lg">Lịch hôm nay</CardTitle><div className="flex items-center gap-2"><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeDay(-1)}><ChevronLeft className="h-4 w-4" /></Button><span className="text-sm font-medium">{selectedDate.toLocaleDateString("vi-VN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</span><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeDay(1)}><ChevronRight className="h-4 w-4" /></Button></div></div></CardHeader><CardContent><div className="space-y-3">
+        {visibleEvents.map((event) => <div key={event.id} className="flex gap-3 rounded-lg border p-4 transition hover:border-primary/50"><div className="w-1 shrink-0 rounded-full bg-primary" /><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div><h4 className="font-semibold">{event.title}</h4><div className="mt-1 flex flex-wrap gap-3 text-sm text-muted-foreground"><span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{timeRange(event)}</span><span className="flex items-center gap-1">{event.meetingUrl ? <Video className="h-3.5 w-3.5" /> : <MapPin className="h-3.5 w-3.5" />}{eventLocation(event)}</span>{event.workspace && <span>{event.workspace.name}</span>}</div></div>{event.meetingUrl && <a href={event.meetingUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">Tham gia <ExternalLink className="h-3 w-3" /></a>}</div><div className="mt-3 flex items-center gap-2"><Users className="h-3.5 w-3.5 text-muted-foreground" /><div className="flex -space-x-2">{[event.owner, ...event.participants.filter((item) => item.id !== event.ownerId)].slice(0, 5).map((user) => <Avatar key={user.id} className="h-6 w-6 border-2 border-card"><AvatarImage src={user.avatar || ""} /><AvatarFallback className="text-[9px]">{initials(user.displayName)}</AvatarFallback></Avatar>)}</div><span className="text-xs text-muted-foreground">{new Set([event.ownerId, ...event.participantIds]).size} người tham gia</span></div></div></div>)}
+        {visibleEvents.length === 0 && <p className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">Không có sự kiện trong ngày này.</p>}
+      </div></CardContent></Card>
+      <Card><CardHeader className="pb-3"><CardTitle className="text-lg">Deadline sắp tới</CardTitle></CardHeader><CardContent><div className="space-y-3">{deadlines.map((task) => <Link key={task.id} href={task.documentId ? `/documents/${task.documentId}` : `/workspaces/${task.workspaceId}?tab=tasks&task=${task.id}`} className="block rounded-lg border p-3 transition hover:border-primary/50"><div className="mb-2 flex items-start justify-between gap-2"><h4 className="line-clamp-2 text-sm font-medium">{task.title}</h4><Badge variant="outline" className={`shrink-0 text-[10px] ${priorityColors[task.priority]}`}>{priorityLabels[task.priority]}</Badge></div><div className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="h-3 w-3" />{deadlineLabel(task.dueDate!)}</div><p className="mt-1 truncate text-xs text-muted-foreground">{task.workspace?.name}{task.document ? ` · ${task.document.title}` : ""}</p></Link>)}{deadlines.length === 0 && <p className="rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">Bạn chưa có deadline sắp tới.</p>}</div><Link href="/my-tasks" className="mt-4 block rounded-md px-3 py-2 text-center text-sm font-medium text-primary hover:bg-secondary">Xem tất cả công việc</Link></CardContent></Card>
+    </div>
+    {showDialog && <EventDialog workspaces={workspaces} selectedDate={selectedDate} onClose={() => setShowDialog(false)} onCreated={(event) => { setEvents((items) => [...items, event]); setShowDialog(false) }} />}
+  </section>
 }
