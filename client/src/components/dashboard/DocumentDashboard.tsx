@@ -182,7 +182,6 @@ export function DocumentDashboard({ recentOnly = true }: { recentOnly?: boolean 
         userInitials={userInitials}
         userAvatar={userAvatar}
         creating={creatingTemplateId === "blank"}
-        onCreateBlank={() => handleCreateDocument("blank")}
         onLogout={handleLogout}
       />
 

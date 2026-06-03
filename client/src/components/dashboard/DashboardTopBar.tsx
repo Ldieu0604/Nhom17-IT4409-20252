@@ -15,7 +15,6 @@ export function DashboardTopBar({
   userInitials,
   userAvatar,
   creating,
-  onCreateBlank,
   onLogout,
 }: {
   search: string
@@ -23,7 +22,6 @@ export function DashboardTopBar({
   userInitials: string
   userAvatar?: string | null
   creating: boolean
-  onCreateBlank: () => void
   onLogout: () => void
 }) {
   return (
@@ -52,17 +50,6 @@ export function DashboardTopBar({
             />
           </label>
         </div>
-
-        <button
-          type="button"
-          onClick={onCreateBlank}
-          disabled={creating}
-          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
-          title="Tạo tài liệu mới"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">{creating ? "Đang tạo" : "Tạo mới"}</span>
-        </button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

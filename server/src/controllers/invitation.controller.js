@@ -94,19 +94,27 @@ async function notifyInviteeJoined(
   workspaceName
 ) {
   const joinedName = displayName(joinedUser);
-  await tx.notification.create({
+  const workspaceMembers = await tx.workspaceMember.findMany({
+    where: { workspaceId },
+    select: { userId: true },
+  });
+  const notifications = workspaceMembers.map((member) => ({
+    userId: member.userId,
+    type: "WORKSPACE_JOINED",
+    title: `${workspaceName}: thành viên mới`,
+    body: `${joinedName} đã tham gia workspace ${workspaceName}.`,
     data: {
-      userId: joinedUser.id,
-      type: "WORKSPACE_JOINED",
-      title: `${workspaceName}: thành viên mới`,
-      body: `${joinedName} đã tham gia workspace ${workspaceName}.`,
-      data: {
-        workspaceId,
-        invitationId,
-        joinedUserId: joinedUser.id,
-        action: "OPEN_WORKSPACE",
-      },
+      workspaceId,
+      invitationId,
+      joinedUserId: joinedUser.id,
+      action: "OPEN_WORKSPACE",
     },
+  }));
+
+  if (notifications.length === 0) return;
+
+  await tx.notification.createMany({
+    data: notifications,
   });
 }
 
