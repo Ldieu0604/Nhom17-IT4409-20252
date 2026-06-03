@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -14,12 +14,53 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Settings, Menu, X, Users, FileText, LayoutGrid, Calendar, LogOut } from "lucide-react"
-import { logoutUser } from "@/services/auth.service"
+import { getStoredUser, logoutUser, onSessionChange } from "@/services/auth.service"
 import { NotificationBell } from "@/components/layout/NotificationBell"
+
+type StoredUser = {
+  firstname?: string
+  lastname?: string
+  username?: string
+  email?: string
+  avatar?: string
+}
+
+function getDisplayName(user: StoredUser | null) {
+  if (!user) return "Người dùng"
+
+  const fullName = [user.firstname, user.lastname].filter(Boolean).join(" ").trim()
+  return fullName || user.username || user.email || "Người dùng"
+}
+
+function getInitials(displayName: string) {
+  return (
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "U"
+  )
+}
 
 export function Header() {
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState<StoredUser | null>(() => getStoredUser())
+
+  useEffect(() => {
+    const syncUser = () => setUser(getStoredUser())
+    window.addEventListener("storage", syncUser)
+    const unsubscribe = onSessionChange(syncUser)
+
+    return () => {
+      window.removeEventListener("storage", syncUser)
+      unsubscribe()
+    }
+  }, [])
+
+  const displayName = useMemo(() => getDisplayName(user), [user])
+  const initials = useMemo(() => getInitials(displayName), [displayName])
 
   const handleLogout = async () => {
     await logoutUser()
@@ -81,20 +122,21 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-user.jpg" alt="User" />
-                  <AvatarFallback className="bg-primary text-primary-foreground">NT</AvatarFallback>
+                <Avatar className="h-8 w-8" title={displayName}>
+                  {user?.avatar && <AvatarImage src={user.avatar} alt={displayName} />}
+                  <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex items-center gap-2 p-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary text-primary-foreground">NT</AvatarFallback>
+                  {user?.avatar && <AvatarImage src={user.avatar} alt={displayName} />}
+                  <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Nguyễn Văn A</span>
-                  <span className="text-xs text-muted-foreground">nguyenvana@email.com</span>
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-medium">{displayName}</span>
+                  {user?.email && <span className="truncate text-xs text-muted-foreground">{user.email}</span>}
                 </div>
               </div>
               <DropdownMenuSeparator />
