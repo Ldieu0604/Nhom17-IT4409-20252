@@ -10,6 +10,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justRegistered = searchParams.get('registered') === '1';
+  const redirect = searchParams.get('redirect');
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -101,7 +102,7 @@ function LoginContent() {
 
       <p className="text-sm text-slate-600 mt-6 text-center">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-primary font-medium hover:underline">
+        <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} className="text-primary font-medium hover:underline">
           Create one
         </Link>
       </p>

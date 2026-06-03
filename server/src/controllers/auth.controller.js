@@ -180,14 +180,15 @@ async function passwordMatches(user, { password, hashedPassword }) {
 
 export const signup = async (req, res) => {
   try {
-    const { email, password, hashedPassword, username, lastname, firstname } = req.body;
+    const { password, hashedPassword, username, lastname, firstname } = req.body;
+    const email = String(req.body.email || "").trim().toLowerCase();
 
     if (!email || (!hashedPassword && !password) || !username || !lastname || !firstname) {
       return fail(res, 400, "Missing input.");
     }
 
     const existing = await prisma.user.findFirst({
-      where: { OR: [{ email }, { username }] },
+      where: { OR: [{ email: { equals: email, mode: "insensitive" } }, { username }] },
     });
 
     if (existing) {
@@ -218,7 +219,8 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, username, password, hashedPassword } = req.body;
+    const { username, password, hashedPassword } = req.body;
+    const email = req.body.email ? String(req.body.email).trim().toLowerCase() : "";
 
     if ((!username && !email) || (!hashedPassword && !password)) {
       return fail(res, 400, "Missing input.");
@@ -228,7 +230,7 @@ export const login = async (req, res) => {
       where: {
         OR: [
           ...(username ? [{ username }] : []),
-          ...(email ? [{ email }] : []),
+          ...(email ? [{ email: { equals: email, mode: "insensitive" } }] : []),
         ],
       },
     });

@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { registerUser } from '../../../services/auth.service';
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [form, setForm] = useState({
     firstname: '',
     lastname: '',
@@ -28,7 +30,8 @@ export default function RegisterPage() {
 
     try {
       await registerUser(form);
-      router.push('/login?registered=1');
+      const redirectParam = redirect ? `&redirect=${encodeURIComponent(redirect)}` : '';
+      router.push(`/login?registered=1${redirectParam}`);
     } catch (err) {
       setError(err.message || 'Something went wrong.');
     } finally {
@@ -103,11 +106,19 @@ export default function RegisterPage() {
 
       <p className="text-sm text-slate-600 mt-6 text-center">
         Already have an account?{' '}
-        <Link href="/login" className="text-primary font-medium hover:underline">
+        <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} className="text-primary font-medium hover:underline">
           Sign in
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="bg-white rounded-2xl shadow-xl p-8 text-sm text-slate-500">Loading...</div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }
 

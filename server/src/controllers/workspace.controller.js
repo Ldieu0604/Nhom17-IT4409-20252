@@ -92,6 +92,7 @@ function workspaceInclude() {
   return {
     owner: true,
     members: { include: { user: true }, orderBy: { createdAt: "asc" } },
+    invitations: { include: { invitedBy: true }, orderBy: { updatedAt: "desc" } },
     documents: { orderBy: { updatedAt: "desc" } },
     tasks: { include: { assignee: true, createdBy: true, document: { select: { id: true, title: true } } }, orderBy: { updatedAt: "desc" } },
   };
@@ -104,6 +105,18 @@ function formatWorkspace(workspace, currentUserId, detailed = false) {
     createdAt: workspace.createdAt, updatedAt: workspace.updatedAt,
     documentCount: workspace.documents.length, taskCount: workspace.tasks.length, completedTaskCount: completedTasks,
     members: workspace.members.map((member) => ({ id: member.id, role: member.role, createdAt: member.createdAt, user: formatUser(member.user) })),
+    invitations: workspace.invitations?.map((invitation) => ({
+      id: invitation.id,
+      workspaceId: invitation.workspaceId,
+      email: invitation.email,
+      role: invitation.role,
+      status: invitation.status,
+      expiresAt: invitation.expiresAt,
+      acceptedAt: invitation.acceptedAt,
+      createdAt: invitation.createdAt,
+      updatedAt: invitation.updatedAt,
+      invitedBy: formatUser(invitation.invitedBy),
+    })) || [],
   };
   return detailed ? { ...base, owner: formatUser(workspace.owner), documents: workspace.documents, tasks: workspace.tasks.map(formatTask) } : base;
 }

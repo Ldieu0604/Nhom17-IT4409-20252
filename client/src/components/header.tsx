@@ -13,8 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Bell, Settings, Menu, X, Users, FileText, LayoutGrid, Calendar, LogOut } from "lucide-react"
+import { Search, Settings, Menu, X, Users, FileText, LayoutGrid, Calendar, LogOut } from "lucide-react"
 import { logoutUser } from "@/services/auth.service"
+import { NotificationBell } from "@/components/layout/NotificationBell"
 
 export function Header() {
   const router = useRouter()
@@ -69,10 +70,9 @@ export function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative hidden sm:flex">
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
-          </Button>
+          <div className="hidden sm:flex">
+            <NotificationBell />
+          </div>
 
           <Button variant="ghost" size="icon" className="hidden sm:flex">
             <Settings className="h-5 w-5" />

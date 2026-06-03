@@ -1,4 +1,4 @@
-export const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password"] as const
+export const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/invitations/accept"] as const
 
 export function normalizePathname(pathname: string | null | undefined) {
   if (!pathname) return "/"
