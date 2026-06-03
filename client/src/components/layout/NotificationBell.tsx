@@ -32,6 +32,13 @@ export function NotificationBell() {
   }, [])
 
   const unreadCount = useMemo(() => items.filter((item) => !item.readAt).length, [items])
+  const acceptedInvitationIds = useMemo(() => {
+    return new Set(
+      items
+        .filter((item) => item.type === "WORKSPACE_JOINED" && item.data?.invitationId)
+        .map((item) => item.data!.invitationId!)
+    )
+  }, [items])
 
   async function acceptInvite(notification: WorkspaceNotification) {
     const invitationId = notification.data?.invitationId
@@ -68,15 +75,18 @@ export function NotificationBell() {
         <DropdownMenuSeparator />
         {items.length === 0 && <div className="px-3 py-6 text-center text-sm text-slate-500">Chưa có thông báo.</div>}
         {items.slice(0, 8).map((notification) => {
-          const canAccept = notification.type === "WORKSPACE_INVITE" && notification.data?.invitationId
-          return <div key={notification.id} className={`border-b px-3 py-3 last:border-b-0 ${notification.readAt ? "bg-white" : "bg-emerald-50/60"}`}>
+          const isAcceptedInvite = notification.type === "WORKSPACE_INVITE" && !!notification.data?.invitationId && acceptedInvitationIds.has(notification.data.invitationId)
+          const isHandled = !!notification.readAt || isAcceptedInvite
+          const canAccept = notification.type === "WORKSPACE_INVITE" && notification.data?.invitationId && !isHandled
+          return <div key={notification.id} className={`border-b px-3 py-3 last:border-b-0 ${isHandled ? "bg-slate-50 text-slate-500" : "bg-emerald-50/60"}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{notification.title}</p>
                 <p className="mt-1 line-clamp-2 text-xs text-slate-600">{notification.body}</p>
                 <p className="mt-1 text-[11px] text-slate-400">{timeLabel(notification.createdAt)}</p>
+                {isAcceptedInvite && <p className="mt-1 text-xs font-medium text-slate-500">Đã chấp nhận lời mời</p>}
               </div>
-              {!notification.readAt && <button type="button" title="Đánh dấu đã đọc" onClick={() => void markRead(notification)} className="rounded-md p-1 text-slate-400 hover:bg-white hover:text-primary"><Check className="h-3.5 w-3.5" /></button>}
+              {!isHandled && <button type="button" title="Đánh dấu đã đọc" onClick={() => void markRead(notification)} className="rounded-md p-1 text-slate-400 hover:bg-white hover:text-primary"><Check className="h-3.5 w-3.5" /></button>}
             </div>
             {canAccept && <button type="button" disabled={actingId === notification.id} onClick={() => void acceptInvite(notification)} className="mt-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-60">{actingId === notification.id ? "Đang chấp nhận..." : "Chấp nhận lời mời"}</button>}
           </div>

@@ -62,6 +62,35 @@ function formatInvitation(invitation, extra = {}) {
   };
 }
 
+async function markInvitationNotificationsRead(tx, userId, invitationId) {
+  return tx.notification.updateMany({
+    where: {
+      userId,
+      type: "WORKSPACE_INVITE",
+      data: { path: ["invitationId"], equals: invitationId },
+    },
+    data: { readAt: new Date() },
+  });
+}
+
+async function notifyInviteeJoined(tx, workspaceId, invitationId, joinedUser, workspaceName) {
+  const joinedName = displayName(joinedUser);
+  await tx.notification.create({
+    data: {
+      userId: joinedUser.id,
+      type: "WORKSPACE_JOINED",
+      title: `${workspaceName}: thành viên mới`,
+      body: `${joinedName} đã tham gia workspace ${workspaceName}.`,
+      data: {
+        workspaceId,
+        invitationId,
+        joinedUserId: joinedUser.id,
+        action: "OPEN_WORKSPACE",
+      },
+    },
+  });
+}
+
 async function requireInviter(req, res, workspaceId) {
   const membership = await prisma.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId: userId(req) } },
@@ -251,15 +280,8 @@ export async function acceptInvitation(req, res) {
         include: { workspace: true },
       });
 
-      await tx.notification.create({
-        data: {
-          userId: currentUser.id,
-          type: "WORKSPACE_JOINED",
-          title: `Joined ${accepted.workspace.name}`,
-          body: `You joined ${accepted.workspace.name}.`,
-          data: { workspaceId: accepted.workspaceId, invitationId: accepted.id },
-        },
-      });
+      await markInvitationNotificationsRead(tx, currentUser.id, invitation.id);
+      await notifyInviteeJoined(tx, accepted.workspaceId, accepted.id, currentUser, accepted.workspace.name);
 
       return { member, invitation: accepted };
     });
@@ -314,24 +336,8 @@ export async function acceptInvitationById(req, res) {
         include: { workspace: true },
       });
 
-      await tx.notification.updateMany({
-        where: {
-          userId: currentUser.id,
-          type: "WORKSPACE_INVITE",
-          data: { path: ["invitationId"], equals: invitation.id },
-        },
-        data: { readAt: new Date() },
-      });
-
-      await tx.notification.create({
-        data: {
-          userId: currentUser.id,
-          type: "WORKSPACE_JOINED",
-          title: `Joined ${accepted.workspace.name}`,
-          body: `You joined ${accepted.workspace.name}.`,
-          data: { workspaceId: accepted.workspaceId, invitationId: accepted.id },
-        },
-      });
+      await markInvitationNotificationsRead(tx, currentUser.id, invitation.id);
+      await notifyInviteeJoined(tx, accepted.workspaceId, accepted.id, currentUser, accepted.workspace.name);
 
       return { member, invitation: accepted };
     });
