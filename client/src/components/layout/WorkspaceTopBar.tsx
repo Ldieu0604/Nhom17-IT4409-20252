@@ -1,14 +1,28 @@
 "use client"
 
 import Link from "next/link"
-import { FileText, Search } from "lucide-react"
+import { FileText, Search, Settings, LogOut } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function WorkspaceTopBar({
   search,
   onSearchChange,
+  userAvatar,
+  userInitials,
+  onLogout,
 }: {
   search: string
   onSearchChange: (value: string) => void
+  userAvatar?: string | null
+  userInitials: string
+  onLogout: () => void
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -36,6 +50,35 @@ export function WorkspaceTopBar({
             />
           </label>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex shrink-0 items-center justify-center rounded-full outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+              <Avatar className="h-10 w-10 border border-slate-200">
+                {userAvatar && <AvatarImage src={userAvatar} alt="User Avatar" />}
+                <AvatarFallback className="bg-primary text-base font-semibold text-primary-foreground">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem asChild>
+              <Link href="/settings" className="flex w-full cursor-pointer items-center">
+                <Settings className="mr-2 h-4 w-4" />
+                Cài đặt
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={onLogout}
+              className="cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-600"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Đăng xuất
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

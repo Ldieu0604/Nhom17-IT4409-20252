@@ -3,7 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { z } from "zod";
-import { buildWorkspaceInviteLink, sendWorkspaceInviteEmail } from "../services/mail.service.js";
+import {
+  buildWorkspaceInviteLink,
+  sendWorkspaceInviteEmail,
+} from "../services/mail.service.js";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
@@ -13,10 +16,14 @@ const inviteSchema = z.object({
   role: z.enum(["owner", "member"]).default("member"),
 });
 const acceptSchema = z.object({ token: z.string().trim().min(32) });
-const INVITATION_TTL_DAYS = Number(process.env.WORKSPACE_INVITE_EXPIRES_IN_DAYS || "7");
+const INVITATION_TTL_DAYS = Number(
+  process.env.WORKSPACE_INVITE_EXPIRES_IN_DAYS || "7"
+);
 
 function ok(res, status, data, message) {
-  return res.status(status).json({ success: true, ...(message ? { message } : {}), data });
+  return res
+    .status(status)
+    .json({ success: true, ...(message ? { message } : {}), data });
 }
 
 function fail(res, status, message) {
@@ -28,11 +35,17 @@ function userId(req) {
 }
 
 function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
+  return String(email || "")
+    .trim()
+    .toLowerCase();
 }
 
 function displayName(user) {
-  return [user.firstname, user.lastname].filter(Boolean).join(" ") || user.username || user.email;
+  return (
+    [user.firstname, user.lastname].filter(Boolean).join(" ") ||
+    user.username ||
+    user.email
+  );
 }
 
 function generateToken() {
@@ -73,7 +86,13 @@ async function markInvitationNotificationsRead(tx, userId, invitationId) {
   });
 }
 
-async function notifyInviteeJoined(tx, workspaceId, invitationId, joinedUser, workspaceName) {
+async function notifyInviteeJoined(
+  tx,
+  workspaceId,
+  invitationId,
+  joinedUser,
+  workspaceName
+) {
   const joinedName = displayName(joinedUser);
   await tx.notification.create({
     data: {
@@ -107,7 +126,8 @@ async function requireInviter(req, res, workspaceId) {
 }
 
 async function markExpired(invitation) {
-  if (invitation.status !== "PENDING" || invitation.expiresAt > new Date()) return invitation;
+  if (invitation.status !== "PENDING" || invitation.expiresAt > new Date())
+    return invitation;
   return prisma.workspaceInvitation.update({
     where: { id: invitation.id },
     data: { status: "EXPIRED" },
@@ -124,24 +144,33 @@ export async function createWorkspaceInvitation(req, res) {
     if (!parsed.success) return fail(res, 400, "A valid email is required.");
 
     const workspaceId = req.params.workspaceId;
-    if (!await requireInviter(req, res, workspaceId)) return;
+    if (!(await requireInviter(req, res, workspaceId))) return;
 
     const email = normalizeEmail(parsed.data.email);
-    const currentUser = await prisma.user.findUnique({ where: { id: userId(req) } });
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId(req) },
+    });
     if (!currentUser) return fail(res, 401, "Please sign in again.");
     if (normalizeEmail(currentUser.email) === email) {
       return fail(res, 400, "You cannot invite yourself to this workspace.");
     }
 
-    const workspace = await prisma.workspace.findUnique({ where: { id: workspaceId } });
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: workspaceId },
+    });
     if (!workspace) return fail(res, 404, "Workspace not found.");
 
-    const invitedUser = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } });
-    if (invitedUser) {
-      const activeMember = await prisma.workspaceMember.findUnique({
-        where: { workspaceId_userId: { workspaceId, userId: invitedUser.id } },
-      });
-      if (activeMember) return fail(res, 409, "User is already a member of this workspace.");
+    const invitedUser = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      include: {
+        workspaceMembers: {
+          where: { workspaceId },
+          take: 1,
+        },
+      },
+    });
+    if (invitedUser?.workspaceMembers.length > 0) {
+      return fail(res, 409, "User is already a member of this workspace.");
     }
 
     const rawToken = generateToken();
@@ -181,7 +210,9 @@ export async function createWorkspaceInvitation(req, res) {
             userId: invitedUser.id,
             type: "WORKSPACE_INVITE",
             title: `Workspace invitation: ${workspace.name}`,
-            body: `${displayName(currentUser)} invited you to join ${workspace.name}.`,
+            body: `${displayName(currentUser)} invited you to join ${
+              workspace.name
+            }.`,
             data: {
               workspaceId,
               invitationId: saved.id,
@@ -207,10 +238,20 @@ export async function createWorkspaceInvitation(req, res) {
     const message = invitedUser
       ? "Invitation sent. The user also received an in-app notification."
       : "Invitation sent. The recipient can accept after registering with this email.";
-    return ok(res, 201, formatInvitation(invitation, { existingAccount: Boolean(invitedUser) }), message);
+    return ok(
+      res,
+      201,
+      formatInvitation(invitation, { existingAccount: Boolean(invitedUser) }),
+      message
+    );
   } catch (error) {
     console.error("[createWorkspaceInvitation]", error);
-    if (error?.code === "P2002") return fail(res, 409, "A pending invitation already exists for this email.");
+    if (error?.code === "P2002")
+      return fail(
+        res,
+        409,
+        "A pending invitation already exists for this email."
+      );
     return fail(res, 500, "Internal server error.");
   }
 }
@@ -218,7 +259,8 @@ export async function createWorkspaceInvitation(req, res) {
 export async function previewInvitation(req, res) {
   try {
     const parsed = acceptSchema.safeParse({ token: req.query.token });
-    if (!parsed.success) return fail(res, 400, "A valid invitation token is required.");
+    if (!parsed.success)
+      return fail(res, 400, "A valid invitation token is required.");
 
     const invitation = await prisma.workspaceInvitation.findUnique({
       where: { tokenHash: hashToken(parsed.data.token) },
@@ -244,9 +286,12 @@ export async function previewInvitation(req, res) {
 export async function acceptInvitation(req, res) {
   try {
     const parsed = acceptSchema.safeParse(req.body);
-    if (!parsed.success) return fail(res, 400, "A valid invitation token is required.");
+    if (!parsed.success)
+      return fail(res, 400, "A valid invitation token is required.");
 
-    const currentUser = await prisma.user.findUnique({ where: { id: userId(req) } });
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId(req) },
+    });
     if (!currentUser) return fail(res, 401, "Please sign in.");
 
     const invitation = await prisma.workspaceInvitation.findUnique({
@@ -254,18 +299,35 @@ export async function acceptInvitation(req, res) {
       include: { workspace: true },
     });
     if (!invitation) return fail(res, 404, "Invitation not found.");
-    if (invitation.status !== "PENDING") return fail(res, 400, `Invitation is ${invitation.status.toLowerCase()}.`);
+    if (invitation.status !== "PENDING")
+      return fail(
+        res,
+        400,
+        `Invitation is ${invitation.status.toLowerCase()}.`
+      );
     if (invitation.expiresAt <= new Date()) {
-      await prisma.workspaceInvitation.update({ where: { id: invitation.id }, data: { status: "EXPIRED" } });
+      await prisma.workspaceInvitation.update({
+        where: { id: invitation.id },
+        data: { status: "EXPIRED" },
+      });
       return fail(res, 400, "Invitation has expired.");
     }
     if (normalizeEmail(currentUser.email) !== invitation.email) {
-      return fail(res, 403, "Please sign in with the email address that was invited.");
+      return fail(
+        res,
+        403,
+        "Please sign in with the email address that was invited."
+      );
     }
 
     const result = await prisma.$transaction(async (tx) => {
       const member = await tx.workspaceMember.upsert({
-        where: { workspaceId_userId: { workspaceId: invitation.workspaceId, userId: currentUser.id } },
+        where: {
+          workspaceId_userId: {
+            workspaceId: invitation.workspaceId,
+            userId: currentUser.id,
+          },
+        },
         create: {
           workspaceId: invitation.workspaceId,
           userId: currentUser.id,
@@ -281,19 +343,30 @@ export async function acceptInvitation(req, res) {
       });
 
       await markInvitationNotificationsRead(tx, currentUser.id, invitation.id);
-      await notifyInviteeJoined(tx, accepted.workspaceId, accepted.id, currentUser, accepted.workspace.name);
+      await notifyInviteeJoined(
+        tx,
+        accepted.workspaceId,
+        accepted.id,
+        currentUser,
+        accepted.workspace.name
+      );
 
       return { member, invitation: accepted };
     });
 
-    return ok(res, 200, {
-      workspace: {
-        id: result.invitation.workspace.id,
-        name: result.invitation.workspace.name,
-        redirectUrl: `/workspaces/${result.invitation.workspace.id}`,
+    return ok(
+      res,
+      200,
+      {
+        workspace: {
+          id: result.invitation.workspace.id,
+          name: result.invitation.workspace.name,
+          redirectUrl: `/workspaces/${result.invitation.workspace.id}`,
+        },
+        member: result.member,
       },
-      member: result.member,
-    }, "Invitation accepted.");
+      "Invitation accepted."
+    );
   } catch (error) {
     console.error("[acceptInvitation]", error);
     return fail(res, 500, "Internal server error.");
@@ -302,7 +375,9 @@ export async function acceptInvitation(req, res) {
 
 export async function acceptInvitationById(req, res) {
   try {
-    const currentUser = await prisma.user.findUnique({ where: { id: userId(req) } });
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId(req) },
+    });
     if (!currentUser) return fail(res, 401, "Please sign in.");
 
     const invitation = await prisma.workspaceInvitation.findUnique({
@@ -310,18 +385,35 @@ export async function acceptInvitationById(req, res) {
       include: { workspace: true },
     });
     if (!invitation) return fail(res, 404, "Invitation not found.");
-    if (invitation.status !== "PENDING") return fail(res, 400, `Invitation is ${invitation.status.toLowerCase()}.`);
+    if (invitation.status !== "PENDING")
+      return fail(
+        res,
+        400,
+        `Invitation is ${invitation.status.toLowerCase()}.`
+      );
     if (invitation.expiresAt <= new Date()) {
-      await prisma.workspaceInvitation.update({ where: { id: invitation.id }, data: { status: "EXPIRED" } });
+      await prisma.workspaceInvitation.update({
+        where: { id: invitation.id },
+        data: { status: "EXPIRED" },
+      });
       return fail(res, 400, "Invitation has expired.");
     }
     if (normalizeEmail(currentUser.email) !== invitation.email) {
-      return fail(res, 403, "This invitation belongs to another email address.");
+      return fail(
+        res,
+        403,
+        "This invitation belongs to another email address."
+      );
     }
 
     const result = await prisma.$transaction(async (tx) => {
       const member = await tx.workspaceMember.upsert({
-        where: { workspaceId_userId: { workspaceId: invitation.workspaceId, userId: currentUser.id } },
+        where: {
+          workspaceId_userId: {
+            workspaceId: invitation.workspaceId,
+            userId: currentUser.id,
+          },
+        },
         create: {
           workspaceId: invitation.workspaceId,
           userId: currentUser.id,
@@ -337,19 +429,30 @@ export async function acceptInvitationById(req, res) {
       });
 
       await markInvitationNotificationsRead(tx, currentUser.id, invitation.id);
-      await notifyInviteeJoined(tx, accepted.workspaceId, accepted.id, currentUser, accepted.workspace.name);
+      await notifyInviteeJoined(
+        tx,
+        accepted.workspaceId,
+        accepted.id,
+        currentUser,
+        accepted.workspace.name
+      );
 
       return { member, invitation: accepted };
     });
 
-    return ok(res, 200, {
-      workspace: {
-        id: result.invitation.workspace.id,
-        name: result.invitation.workspace.name,
-        redirectUrl: `/workspaces/${result.invitation.workspace.id}`,
+    return ok(
+      res,
+      200,
+      {
+        workspace: {
+          id: result.invitation.workspace.id,
+          name: result.invitation.workspace.name,
+          redirectUrl: `/workspaces/${result.invitation.workspace.id}`,
+        },
+        member: result.member,
       },
-      member: result.member,
-    }, "Invitation accepted.");
+      "Invitation accepted."
+    );
   } catch (error) {
     console.error("[acceptInvitationById]", error);
     return fail(res, 500, "Internal server error.");
