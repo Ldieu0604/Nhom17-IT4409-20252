@@ -11,6 +11,7 @@ const workspaceSchema = z.object({
   description: z.string().trim().max(2000).nullable().optional(),
 });
 const memberSchema = z.object({ email: z.string().trim().email() });
+const memberUpdateSchema = z.object({ role: z.enum(["owner", "member"]) });
 const taskSchema = z.object({
   title: z.string().trim().min(1).max(240),
   description: z.string().trim().max(4000).nullable().optional(),
@@ -181,6 +182,48 @@ export async function addWorkspaceMember(req, res) {
   }
 }
 
+export async function updateWorkspaceMember(req, res) {
+  try {
+    if (!await requireMembership(req, res, true)) return;
+    const parsed = memberUpdateSchema.safeParse(req.body);
+    if (!parsed.success) return fail(res, 400, "Invalid member input.");
+    const member = await prisma.workspaceMember.findFirst({
+      where: { id: req.params.memberId, workspaceId: req.params.workspaceId },
+      include: { user: true },
+    });
+    if (!member) return fail(res, 404, "Member not found.");
+    if (member.role === "owner" && parsed.data.role !== "owner") {
+      const ownerCount = await prisma.workspaceMember.count({ where: { workspaceId: req.params.workspaceId, role: "owner" } });
+      if (ownerCount <= 1) return fail(res, 400, "Workspace must have at least one owner.");
+    }
+    const updated = await prisma.workspaceMember.update({
+      where: { id: member.id },
+      data: { role: parsed.data.role },
+      include: { user: true },
+    });
+    return ok(res, 200, { ...updated, user: formatUser(updated.user) }, "Member updated.");
+  } catch (error) {
+    console.error("[updateWorkspaceMember]", error);
+    return fail(res, 500, "Internal server error.");
+  }
+}
+
+export async function deleteWorkspaceMember(req, res) {
+  try {
+    if (!await requireMembership(req, res, true)) return;
+    const member = await prisma.workspaceMember.findFirst({
+      where: { id: req.params.memberId, workspaceId: req.params.workspaceId },
+    });
+    if (!member) return fail(res, 404, "Member not found.");
+    if (member.role === "owner") return fail(res, 400, "Owner cannot be removed from this workspace.");
+    await prisma.workspaceMember.delete({ where: { id: member.id } });
+    return ok(res, 200, { id: member.id }, "Member removed.");
+  } catch (error) {
+    console.error("[deleteWorkspaceMember]", error);
+    return fail(res, 500, "Internal server error.");
+  }
+}
+
 export async function createTask(req, res) {
   try {
     if (!await requireMembership(req, res)) return;
@@ -237,6 +280,19 @@ export async function updateTask(req, res) {
     return ok(res, 200, formatTask(task), "Task updated.");
   } catch (error) {
     console.error("[updateTask]", error);
+    return fail(res, 500, "Internal server error.");
+  }
+}
+
+export async function deleteTask(req, res) {
+  try {
+    if (!await requireMembership(req, res)) return;
+    const existing = await prisma.task.findFirst({ where: { id: req.params.taskId, workspaceId: req.params.workspaceId } });
+    if (!existing) return fail(res, 404, "Task not found.");
+    await prisma.task.delete({ where: { id: existing.id } });
+    return ok(res, 200, { id: existing.id }, "Task deleted.");
+  } catch (error) {
+    console.error("[deleteTask]", error);
     return fail(res, 500, "Internal server error.");
   }
 }
