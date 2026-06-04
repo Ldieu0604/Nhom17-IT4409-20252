@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Users, Mail, MapPin, Phone, Github, Linkedin } from "lucide-react"
+import { Users, Mail, MapPin, ExternalLink } from "lucide-react"
 
 const teamMembers = [
   {
@@ -13,9 +13,9 @@ const teamMembers = [
     email: "tranthib@coworkhub.vn",
   },
   {
-    name: "Lê Văn C",
+    name: "Hoàng Thuỳ Linh",
     role: "UI/UX Designer",
-    email: "levanc@coworkhub.vn",
+    email: "hoangthuylinh@coworkhub.vn",
   },
   {
     name: "Phạm Thị D",
@@ -43,10 +43,10 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <Link href="#" className="rounded-md p-2 transition-colors hover:bg-sidebar-accent">
-                <Github className="h-5 w-5" />
+                <ExternalLink className="h-5 w-5" />
               </Link>
               <Link href="#" className="rounded-md p-2 transition-colors hover:bg-sidebar-accent">
-                <Linkedin className="h-5 w-5" />
+                <ExternalLink className="h-5 w-5" />
               </Link>
             </div>
           </div>
@@ -75,14 +75,10 @@ export function Footer() {
               <div className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <span className="text-sm text-sidebar-foreground/70">
-                  Đại học Công nghệ Thông tin - ĐHQG TP.HCM
+                  Đại học Bách Khoa Hà Nội 
                   <br />
-                  Khu phố 6, P. Linh Trung, TP. Thủ Đức
+                  Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội
                 </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 shrink-0 text-primary" />
-                <span className="text-sm text-sidebar-foreground/70">+84 123 456 789</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 shrink-0 text-primary" />
@@ -95,7 +91,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-sidebar-border pt-6 sm:flex-row">
           <p className="text-sm text-sidebar-foreground/60">
-            © 2026 CoWorkHub. Được phát triển bởi sinh viên UIT.
+            © 2026 CoWorkHub. Được phát triển bởi sinh viên HUST.
           </p>
           <div className="flex gap-4 text-sm text-sidebar-foreground/60">
             <Link href="#" className="transition-colors hover:text-sidebar-foreground">

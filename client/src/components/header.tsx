@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -12,10 +13,59 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Bell, Settings, Menu, X, Users, FileText, LayoutGrid, Calendar } from "lucide-react"
+import { Search, Settings, Menu, X, Users, FileText, LayoutGrid, Calendar, LogOut } from "lucide-react"
+import { getStoredUser, logoutUser, onSessionChange } from "@/services/auth.service"
+import { NotificationBell } from "@/components/layout/NotificationBell"
+
+type StoredUser = {
+  firstname?: string
+  lastname?: string
+  username?: string
+  email?: string
+  avatar?: string
+}
+
+function getDisplayName(user: StoredUser | null) {
+  if (!user) return "Người dùng"
+
+  const fullName = [user.firstname, user.lastname].filter(Boolean).join(" ").trim()
+  return fullName || user.username || user.email || "Người dùng"
+}
+
+function getInitials(displayName: string) {
+  return (
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "U"
+  )
+}
 
 export function Header() {
+  const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState<StoredUser | null>(() => getStoredUser())
+
+  useEffect(() => {
+    const syncUser = () => setUser(getStoredUser())
+    window.addEventListener("storage", syncUser)
+    const unsubscribe = onSessionChange(syncUser)
+
+    return () => {
+      window.removeEventListener("storage", syncUser)
+      unsubscribe()
+    }
+  }, [])
+
+  const displayName = useMemo(() => getDisplayName(user), [user])
+  const initials = useMemo(() => getInitials(displayName), [displayName])
+
+  const handleLogout = async () => {
+    await logoutUser()
+    router.replace("/login")
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -27,7 +77,7 @@ export function Header() {
               <Users className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="hidden text-xl font-bold text-foreground sm:inline-block">
-              Hệ thống làm việc cộng tác
+              Collaborative Workspaces
             </span>
             <span className="text-xl font-bold text-foreground sm:hidden">
               CoWorkHub
@@ -37,21 +87,13 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-1 md:flex">
-          <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+          <Link href="/dashboard" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
             <FileText className="h-4 w-4" />
             Tài liệu
           </Link>
-          <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+          <Link href="/workspaces" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
             <LayoutGrid className="h-4 w-4" />
             Workspace
-          </Link>
-          <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-            <Calendar className="h-4 w-4" />
-            Lịch
-          </Link>
-          <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-            <Users className="h-4 w-4" />
-            Nhóm
           </Link>
         </nav>
 
@@ -69,10 +111,9 @@ export function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative hidden sm:flex">
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
-          </Button>
+          <div className="hidden sm:flex">
+            <NotificationBell />
+          </div>
 
           <Button variant="ghost" size="icon" className="hidden sm:flex">
             <Settings className="h-5 w-5" />
@@ -81,28 +122,39 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder-user.jpg" alt="User" />
-                  <AvatarFallback className="bg-primary text-primary-foreground">NT</AvatarFallback>
+                <Avatar className="h-8 w-8" title={displayName}>
+                  {user?.avatar && <AvatarImage src={user.avatar} alt={displayName} />}
+                  <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex items-center gap-2 p-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary text-primary-foreground">NT</AvatarFallback>
+                  {user?.avatar && <AvatarImage src={user.avatar} alt={displayName} />}
+                  <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Nguyễn Văn A</span>
-                  <span className="text-xs text-muted-foreground">nguyenvana@email.com</span>
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm font-medium">{displayName}</span>
+                  {user?.email && <span className="truncate text-xs text-muted-foreground">{user.email}</span>}
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Tài khoản của tôi</DropdownMenuItem>
-              <DropdownMenuItem>Cài đặt</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">Tài khoản của tôi</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard">Dashboard tài liệu</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">Cài đặt</Link>
+              </DropdownMenuItem>
               <DropdownMenuItem>Trợ giúp</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">Đăng xuất</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive" onSelect={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Đăng xuất
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -132,15 +184,15 @@ export function Header() {
             </div>
           </div>
           <nav className="flex flex-col gap-1">
-            <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
+            <Link href="/dashboard" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
               <FileText className="h-4 w-4" />
               Tài liệu
             </Link>
-            <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
+            <Link href="/workspaces" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
               <LayoutGrid className="h-4 w-4" />
               Workspace
             </Link>
-            <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
+            <Link href="/#calendar" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
               <Calendar className="h-4 w-4" />
               Lịch
             </Link>
