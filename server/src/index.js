@@ -11,12 +11,16 @@ import calendarRoutes from './routes/calendar.routes.js';
 import invitationRoutes from './routes/invitation.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 const app = express();
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3000,http://localhost:3001')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Core middleware
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   })
 );
