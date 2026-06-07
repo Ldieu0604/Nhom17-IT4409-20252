@@ -38,6 +38,7 @@ import { LiveblocksYjsProvider } from "@liveblocks/yjs";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
 import TableResizerPlugin from "./plugins/TableResizerPlugin";
+import EditorTabPlugin from "./plugins/EditorTabPlugin";
 
 // Custom Lexical Theme
 const theme = {
@@ -51,6 +52,9 @@ const theme = {
     ol: "list-decimal ml-6 mb-4",
     ul: "list-disc ml-6 mb-4",
     listitem: "mb-1 ml-2",
+    nested: {
+      listitem: "list-none",
+    },
     listitemUnchecked: "relative !list-none pl-6 !ml-0 mb-1 cursor-pointer before:absolute before:left-0 before:top-[0.6em] before:-translate-y-1/2 before:w-3.5 before:h-3.5 before:border before:border-slate-500 before:bg-white before:rounded-none before:content-['']",
     listitemChecked: "relative !list-none pl-6 !ml-0 mb-1 line-through text-slate-400 cursor-pointer before:absolute before:left-0 before:top-[0.6em] before:-translate-y-1/2 before:w-3.5 before:h-3.5 before:bg-blue-500 before:rounded-none before:content-['✓'] before:text-white before:text-[10px] before:font-bold before:flex before:items-center before:justify-center",
   },
@@ -561,6 +565,7 @@ export default function LexicalEditor({
 
         {/* Pagination simulation */}
         <LexicalPaginationPlugin margins={pageMargins} />
+        <EditorTabPlugin />
       </div>
     </LexicalComposer>
   );
