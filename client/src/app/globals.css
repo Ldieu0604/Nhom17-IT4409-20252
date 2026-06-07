@@ -215,6 +215,16 @@
   padding-left: 1.5rem;
   margin-bottom: 1rem;
 }
+
+/* Cấp 2: Danh sách ol nằm trong một ol khác -> Chữ cái thường (a, b, c) */
+.editor-content ol ol {
+    list-style-type: lower-alpha !important;
+}
+
+/* Cấp 3: Danh sách ol nằm ở độ sâu thứ 3 -> Số La Mã nhỏ (i, ii, iii) */
+.editor-content ol ol ol {
+    list-style-type: lower-roman !important;
+}
 .editor-content li {
   margin-bottom: 0.25rem;
 }

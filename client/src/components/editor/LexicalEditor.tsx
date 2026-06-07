@@ -39,6 +39,8 @@ import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
 import TableResizerPlugin from "./plugins/TableResizerPlugin";
 import EditorTabPlugin from "./plugins/EditorTabPlugin";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { TRANSFORMERS } from "@lexical/markdown";
 
 // Custom Lexical Theme
 const theme = {
@@ -566,6 +568,7 @@ export default function LexicalEditor({
         {/* Pagination simulation */}
         <LexicalPaginationPlugin margins={pageMargins} />
         <EditorTabPlugin />
+        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
       </div>
     </LexicalComposer>
   );
