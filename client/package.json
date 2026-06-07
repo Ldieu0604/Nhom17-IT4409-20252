@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lexical/clipboard": "^0.45.0",
+    "@lexical/code": "^0.45.0",
     "@lexical/link": "^0.45.0",
     "@lexical/list": "^0.45.0",
     "@lexical/mark": "^0.45.0",

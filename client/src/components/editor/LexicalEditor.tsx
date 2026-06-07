@@ -41,6 +41,7 @@ import TableResizerPlugin from "./plugins/TableResizerPlugin";
 import EditorTabPlugin from "./plugins/EditorTabPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { TRANSFORMERS } from "@lexical/markdown";
+import { CodeNode, CodeHighlightNode } from "@lexical/code";
 
 // Custom Lexical Theme
 const theme = {
@@ -468,6 +469,8 @@ export default function LexicalEditor({
       TableCellNode,
       ListNode, 
       ListItemNode, 
+      CodeNode,
+      CodeHighlightNode,
       LinkNode, 
       MarkNode,
       ImageNode,
