@@ -38,6 +38,10 @@ import { LiveblocksYjsProvider } from "@liveblocks/yjs";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
 import TableResizerPlugin from "./plugins/TableResizerPlugin";
+import EditorTabPlugin from "./plugins/EditorTabPlugin";
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
+import { TRANSFORMERS } from "@lexical/markdown";
+import { CodeNode, CodeHighlightNode } from "@lexical/code";
 
 // Custom Lexical Theme
 const theme = {
@@ -48,9 +52,12 @@ const theme = {
     h3: "text-[24px] font-medium mb-2 mt-4 leading-tight", 
   },
   list: {
-    ol: "list-decimal list-inside ml-6 mb-4",
-    ul: "list-disc list-inside ml-6 mb-4",
+    ol: "list-decimal ml-6 mb-4",
+    ul: "list-disc ml-6 mb-4",
     listitem: "mb-1 ml-2",
+    nested: {
+      listitem: "list-none",
+    },
     listitemUnchecked: "relative !list-none pl-6 !ml-0 mb-1 cursor-pointer before:absolute before:left-0 before:top-[0.6em] before:-translate-y-1/2 before:w-3.5 before:h-3.5 before:border before:border-slate-500 before:bg-white before:rounded-none before:content-['']",
     listitemChecked: "relative !list-none pl-6 !ml-0 mb-1 line-through text-slate-400 cursor-pointer before:absolute before:left-0 before:top-[0.6em] before:-translate-y-1/2 before:w-3.5 before:h-3.5 before:bg-blue-500 before:rounded-none before:content-['✓'] before:text-white before:text-[10px] before:font-bold before:flex before:items-center before:justify-center",
   },
@@ -63,9 +70,8 @@ const theme = {
   mark: "comment-highlight",
   table: "border-collapse border border-slate-300 w-full my-4 table-fixed bg-white",
   tableCell: "border border-slate-300 p-2 min-w-[75px] align-top relative bg-white",
-  tableCellHeader: "bg-white font-bold border border-slate-300 p-2",
+  tableCellHeader: "border border-slate-300 p-2 min-w-[75px] align-top relative bg-white font-normal text-left",
 };
-
 interface LexicalEditorProps {
   documentId: string;
   doc: Y.Doc;
@@ -463,6 +469,8 @@ export default function LexicalEditor({
       TableCellNode,
       ListNode, 
       ListItemNode, 
+      CodeNode,
+      CodeHighlightNode,
       LinkNode, 
       MarkNode,
       ImageNode,
@@ -531,7 +539,7 @@ export default function LexicalEditor({
         
         <LinkPlugin />
         <ClickableLinkPlugin />
-        <TablePlugin />
+        <TablePlugin hasCellMerge={true} hasCellBackgroundColor={true} />
         <HorizontalRulePlugin />
         <TableResizerPlugin />
         
@@ -562,6 +570,8 @@ export default function LexicalEditor({
 
         {/* Pagination simulation */}
         <LexicalPaginationPlugin margins={pageMargins} />
+        <EditorTabPlugin />
+        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
       </div>
     </LexicalComposer>
   );
