@@ -158,21 +158,21 @@ export function WorkspaceDocuments({
 }) {
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold">Tài liệu</h2>
           <p className="text-sm text-slate-500">
             Tất cả tài liệu thuộc workspace hiện tại.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           {CREATABLE_DOCUMENT_TEMPLATES.map((template) => (
             <button
               key={template}
               onClick={() => createDoc(template)}
-              className="rounded-md border bg-white px-3 py-2 text-xs font-medium hover:border-primary hover:text-primary"
+              className="inline-flex w-full items-center justify-center rounded-md border bg-white px-3 py-2 text-xs font-medium hover:border-primary hover:text-primary sm:w-auto"
             >
-              <Plus className="mr-1 inline h-3.5 w-3.5" />
+              <Plus className="mr-1 h-3.5 w-3.5" />
               {TEMPLATE_LABELS[template]}
             </button>
           ))}

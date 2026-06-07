@@ -81,7 +81,7 @@ export function WorkspaceTabs({
 }) {
   return (
     <div className="overflow-x-auto border-b bg-white">
-      <nav className="mx-auto flex max-w-7xl gap-8 px-5">
+      <nav className="mx-auto flex max-w-7xl gap-4 px-4 sm:gap-8 sm:px-5">
         {TAB_LABELS.map(([id, label]) => (
           <button
             key={id}
@@ -103,12 +103,12 @@ export function WorkspaceTabs({
 export function WorkspaceHeader({ workspace }: { workspace: Workspace }) {
   return (
     <section className="border-b bg-white">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-5">
-        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-primary">
+      <div className="mx-auto flex max-w-7xl items-start gap-3 px-4 py-4 sm:items-center sm:gap-4 sm:px-5 sm:py-5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-primary sm:h-12 sm:w-12">
           <Users className="h-6 w-6" />
         </span>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
             {workspace.name}
           </h1>
           <p className="mt-0.5 text-sm text-slate-500">

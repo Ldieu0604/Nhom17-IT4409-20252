@@ -187,7 +187,7 @@ export function DocumentDashboard({ recentOnly = true }: { recentOnly?: boolean 
 
       <main>
         <section className="border-y border-border bg-secondary/40">
-          <div className="mx-auto max-w-[1540px] px-5 py-7 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1540px] px-4 py-5 sm:px-8 sm:py-7 lg:px-12">
             <div className="mb-5 flex items-center justify-between gap-4">
               <h2 className="text-lg font-medium text-slate-800 sm:text-xl">Bắt đầu một tài liệu mới</h2>
             </div>
@@ -204,21 +204,21 @@ export function DocumentDashboard({ recentOnly = true }: { recentOnly?: boolean 
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1540px] px-5 py-7 sm:px-8 lg:px-12">
+        <section className="mx-auto max-w-[1540px] px-4 py-5 sm:px-8 sm:py-7 lg:px-12">
           <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
+            <div className="min-w-0">
               <h2 className="text-xl font-semibold text-slate-800">Tài liệu gần đây</h2>
               <p className="mt-1 text-sm text-slate-500">Mở nhanh tài liệu của bạn và tài liệu được chia sẻ.</p>
             </div>
-            {recentOnly && <Link href="/dashboard" className="text-sm font-medium text-primary hover:underline">Xem tất cả</Link>}
+            {recentOnly && <Link href="/dashboard" className="inline-flex text-sm font-medium text-primary hover:underline">Xem tất cả</Link>}
 
-            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            <div className="grid grid-cols-2 items-center gap-2 text-sm text-slate-600 sm:flex sm:flex-wrap">
               <label className="sr-only" htmlFor="owner-filter">Lọc chủ sở hữu</label>
               <select
                 id="owner-filter"
                 value={ownerFilter}
                 onChange={(event) => setOwnerFilter(event.target.value as OwnerFilter)}
-                className="h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="h-9 min-w-0 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">Tất cả tài liệu</option>
                 <option value="me">Của tôi</option>
@@ -230,17 +230,17 @@ export function DocumentDashboard({ recentOnly = true }: { recentOnly?: boolean 
                 id="sort-mode"
                 value={sortMode}
                 onChange={(event) => setSortMode(event.target.value as SortMode)}
-                className="h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="h-9 min-w-0 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
               >
                 <option value="openedAt">Mới nhất</option>
                 <option value="title">Tên A-Z</option>
               </select>
 
-              <div className="flex h-9 items-center rounded-md border border-slate-200 bg-white p-1">
+              <div className="col-span-2 flex h-9 w-full items-center rounded-md border border-slate-200 bg-white p-1 sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid")}
-                  className={`inline-flex h-7 w-8 items-center justify-center rounded transition ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
+                  className={`inline-flex h-7 flex-1 items-center justify-center rounded transition sm:w-8 sm:flex-none ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
                   title="Xem dạng lưới"
                 >
                   <LayoutGrid className="h-4 w-4" />
@@ -248,7 +248,7 @@ export function DocumentDashboard({ recentOnly = true }: { recentOnly?: boolean 
                 <button
                   type="button"
                   onClick={() => setViewMode("list")}
-                  className={`inline-flex h-7 w-8 items-center justify-center rounded transition ${viewMode === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
+                  className={`inline-flex h-7 flex-1 items-center justify-center rounded transition sm:w-8 sm:flex-none ${viewMode === "list" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-secondary"}`}
                   title="Xem dạng danh sách"
                 >
                   <List className="h-4 w-4" />
@@ -269,7 +269,7 @@ export function DocumentDashboard({ recentOnly = true }: { recentOnly?: boolean 
           ) : visibleDocuments.length === 0 ? (
             <EmptyState onCreate={() => handleCreateDocument("blank")} />
           ) : viewMode === "grid" ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
               {visibleDocuments.map((document) => (
                 <DocumentCard 
                   key={document.id} 

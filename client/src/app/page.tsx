@@ -13,7 +13,7 @@ export default function Home() {
       <Header />
 
       <main className="flex-1">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 lg:px-6">
           <HeroSection />
           <TemplatesSection />
           <RecentDocuments />

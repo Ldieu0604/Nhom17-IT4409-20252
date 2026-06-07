@@ -16,7 +16,7 @@ export function DocumentCard({
 }) {
   return (
     <article className="group overflow-hidden rounded-md border border-slate-200 bg-white transition hover:border-primary hover:shadow-md">
-      <button type="button" onClick={onOpen} className="block h-[292px] w-full overflow-hidden text-left">
+      <button type="button" onClick={onOpen} className="block h-56 w-full overflow-hidden text-left sm:h-[292px]">
         <DocumentPreview title={document.title} />
       </button>
       <div className="border-t border-slate-200 px-4 py-3">

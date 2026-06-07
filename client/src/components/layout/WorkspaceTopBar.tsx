@@ -26,7 +26,7 @@ export function WorkspaceTopBar({
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
+      <div className="flex min-h-16 flex-wrap items-center gap-3 px-4 py-2 sm:px-6 lg:flex-nowrap">
         <Link href="/" title="Về trang chủ" className="flex min-w-0 shrink-0 items-center gap-3">
           <span className="flex h-10 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
             <FileText className="h-6 w-6" />
@@ -38,13 +38,13 @@ export function WorkspaceTopBar({
           <Link href="/workspaces" className="rounded-md px-3 py-2 font-medium text-primary transition hover:bg-secondary">Workspace</Link>
         </nav>
 
-        <div className="mx-auto flex max-w-3xl flex-1 items-center">
-          <label className="flex h-12 w-full cursor-text items-center gap-4 rounded-lg border-2 border-transparent bg-secondary px-4 text-muted-foreground transition focus-within:border-primary focus-within:bg-background focus-within:text-primary focus-within:shadow-sm focus-within:ring-4 focus-within:ring-primary/15">
+        <div className="order-3 flex w-full items-center lg:order-none lg:mx-auto lg:max-w-3xl lg:flex-1">
+          <label className="flex h-11 w-full cursor-text items-center gap-3 rounded-lg border-2 border-transparent bg-secondary px-3 text-muted-foreground transition focus-within:border-primary focus-within:bg-background focus-within:text-primary focus-within:shadow-sm focus-within:ring-4 focus-within:ring-primary/15 sm:h-12 sm:gap-4 sm:px-4">
             <Search className="h-5 w-5 shrink-0" />
             <input
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
-              className="h-full min-w-0 flex-1 cursor-text bg-transparent text-base text-slate-900 caret-primary outline-none placeholder:text-slate-500"
+              className="h-full min-w-0 flex-1 cursor-text bg-transparent text-sm text-slate-900 caret-primary outline-none placeholder:text-slate-500 sm:text-base"
               placeholder="Tìm kiếm workspace"
               type="search"
             />

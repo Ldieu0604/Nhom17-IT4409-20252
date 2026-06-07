@@ -38,9 +38,10 @@ function WorkspaceListCard({
           {workspace.description ||
             "Quản lý tài liệu, thành viên và tiến độ công việc"}
         </p>
-        <p className="mt-4 text-xs text-slate-500">
-          {workspace.members.length} thành viên · {workspace.documentCount} tài
-          liệu · {workspace.completedTaskCount}/{workspace.taskCount} công việc
+        <p className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+          <span>{workspace.members.length} thành viên</span>
+          <span>{workspace.documentCount} tài liệu</span>
+          <span>{workspace.completedTaskCount}/{workspace.taskCount} công việc</span>
         </p>
       </Link>
       {workspace.role === "owner" && (
@@ -144,23 +145,23 @@ export function WorkspaceList() {
         userInitials={userInitials}
         onLogout={() => router.push("/")} 
       />
-      <main className="mx-auto max-w-6xl px-5 py-8">
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Workspaces</h1>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold sm:text-2xl">Workspaces</h1>
             <p className="mt-1 text-sm text-slate-500">
               Không gian quản lý thành viên, công việc và tiến độ.
             </p>
           </div>
-          <form onSubmit={submit} className="flex gap-2">
+          <form onSubmit={submit} className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Tên workspace"
-              className="rounded-md border bg-white px-3 py-2 text-sm"
+              className="w-full rounded-md border bg-white px-3 py-2 text-sm sm:w-56"
             />
-            <button className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-white">
-              <Plus className="mr-1 inline h-4 w-4" />
+            <button className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-white">
+              <Plus className="mr-1 h-4 w-4" />
               Tạo
             </button>
           </form>
