@@ -21,20 +21,6 @@ const DOCUMENT_TEMPLATES = [
     accent: "emerald",
     preview: "blank",
   },
-  {
-    id: "todo",
-    title: "To-do List",
-    subtitle: "Danh sách công việc với checkbox",
-    accent: "sky",
-    preview: "todo",
-  },
-  {
-    id: "task_table",
-    title: "Bảng công việc",
-    subtitle: "Theo dõi công việc bằng bảng",
-    accent: "amber",
-    preview: "task_table",
-  },
 ];
 
 const createDocumentSchema = z.object({
@@ -42,7 +28,7 @@ const createDocumentSchema = z.object({
   content: z.string().optional(),
   folderId: z.string().uuid().nullable().optional(),
   workspaceId: z.string().uuid().nullable().optional(),
-  templateId: z.enum(["blank", "todo", "task_table"]).optional(),
+  templateId: z.enum(["blank"]).optional(),
 });
 
 const updateDocumentSchema = z
@@ -433,17 +419,6 @@ export const createDocument = async (req, res) => {
           role: "owner",
         },
       });
-
-      if (templateId === "task_table" && workspaceId) {
-        await tx.task.create({
-          data: {
-            title: "Công việc đầu tiên",
-            workspaceId,
-            documentId: created.id,
-            createdById: authUser.userId,
-          },
-        });
-      }
 
       return created;
     });

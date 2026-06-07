@@ -2,10 +2,8 @@ import { DashboardDocument, DashboardTemplate } from "@/services/document.servic
 
 export const FALLBACK_TEMPLATES: DashboardTemplate[] = [
   { id: "blank", title: "Trang trống", subtitle: "Bắt đầu với một trang trắng", accent: "primary", preview: "blank" },
-  { id: "todo", title: "To-do List", subtitle: "Danh sách công việc với checkbox", accent: "sky", preview: "todo" },
-  { id: "task_table", title: "Bảng công việc", subtitle: "Theo dõi công việc bằng bảng", accent: "amber", preview: "task_table" },
 ]
-export const ESSENTIAL_TEMPLATE_IDS = new Set(["blank", "todo", "task_table"])
+export const ESSENTIAL_TEMPLATE_IDS = new Set(["blank"])
 
 export const ACCENT_CLASSES: Record<string, { bar: string; soft: string; text: string; ring: string }> = {
   primary: { bar: "bg-primary", soft: "bg-primary/10", text: "text-primary", ring: "group-hover:border-primary" },

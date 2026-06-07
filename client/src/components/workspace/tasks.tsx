@@ -479,20 +479,6 @@ function AssignmentTable({
   return (
     <Card className="overflow-hidden">
       <div className="flex flex-wrap items-center gap-2 border-b p-3">
-        <button
-          onClick={onAddTask}
-          className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
-        >
-          <Plus className="mr-1 inline h-3.5 w-3.5" />
-          Hàng mới
-        </button>
-        <button
-          onClick={onAddColumn}
-          className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-slate-50"
-        >
-          <Plus className="mr-1 inline h-3.5 w-3.5" />
-          Cột mới
-        </button>
         <label className="ml-1 flex min-w-[220px] flex-1 items-center gap-2 rounded-md border px-3 py-1.5 text-xs text-slate-400">
           <Search className="h-3.5 w-3.5" />
           <input
@@ -739,24 +725,6 @@ export function WorkspaceTasks({
         <div>
           <h2 className="font-semibold">Công việc</h2>
           <div className="mt-2 flex gap-5 text-sm">
-            <button
-              onClick={() => setView("todo")}
-              className={
-                view === "todo" ? "font-medium text-primary" : "text-slate-500"
-              }
-            >
-              <ListChecks className="mr-1 inline h-4 w-4" />
-              To-do List
-            </button>
-            <button
-              onClick={() => setView("table")}
-              className={
-                view === "table" ? "font-medium text-primary" : "text-slate-500"
-              }
-            >
-              <Grid2X2 className="mr-1 inline h-4 w-4" />
-              Bảng phân công
-            </button>
           </div>
         </div>
         <button

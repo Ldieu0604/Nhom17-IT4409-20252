@@ -8,7 +8,7 @@ import type { Workspace, WorkspaceDocument } from "@/services/workspace.service"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Card, TemplatePill } from "./shared";
-import { TEMPLATE_LABELS } from "./constants";
+import { CREATABLE_DOCUMENT_TEMPLATES, TEMPLATE_LABELS } from "./constants";
 import { dateLabel } from "./utils";
 
 function WorkspaceDocumentActionMenu({
@@ -56,7 +56,11 @@ function WorkspaceDocumentActionMenu({
           <button
             type="button"
             title="Tùy chọn tài liệu"
-            onClick={(event) => event.preventDefault()}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
             className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           >
             <MoreHorizontal className="h-4 w-4" />
@@ -70,7 +74,10 @@ function WorkspaceDocumentActionMenu({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onSelect={() => setConfirmingDelete(true)}
+            onSelect={(event) => {
+              event.preventDefault();
+              setConfirmingDelete(true);
+            }}
           >
             <Trash2 className="h-4 w-4" />
             Xóa
@@ -159,9 +166,7 @@ export function WorkspaceDocuments({
           </p>
         </div>
         <div className="flex gap-2">
-          {(
-            Object.keys(TEMPLATE_LABELS) as WorkspaceDocument["template"][]
-          ).map((template) => (
+          {CREATABLE_DOCUMENT_TEMPLATES.map((template) => (
             <button
               key={template}
               onClick={() => createDoc(template)}
@@ -175,26 +180,30 @@ export function WorkspaceDocuments({
       </div>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {workspace.documents?.map((document) => (
-          <Link
+          <article
             key={document.id}
-            href={`/documents/${document.id}`}
             className="group relative rounded-xl border bg-white p-4 pr-12 shadow-sm shadow-slate-100 transition hover:border-primary/50 hover:shadow"
           >
-            <FileText className="h-5 w-5 text-primary" />
-            <h3 className="mt-3 truncate font-medium">{document.title}</h3>
-            <div className="mt-4 flex items-center justify-between">
-              <TemplatePill template={document.template} />
-              <span className="text-[11px] text-slate-500">
-                {dateLabel(document.updatedAt)}
-              </span>
-            </div>
-            <span className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+            <Link
+              href={`/documents/${document.id}`}
+              className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <FileText className="h-5 w-5 text-primary" />
+              <h3 className="mt-3 truncate font-medium">{document.title}</h3>
+              <div className="mt-4 flex items-center justify-between">
+                <TemplatePill template={document.template} />
+                <span className="text-[11px] text-slate-500">
+                  {dateLabel(document.updatedAt)}
+                </span>
+              </div>
+            </Link>
+            <div className="absolute right-3 top-3 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
               <WorkspaceDocumentActionMenu
                 document={document}
                 reload={reload}
               />
-            </span>
-          </Link>
+            </div>
+          </article>
         ))}
       </div>
       {!workspace.documents?.length && (

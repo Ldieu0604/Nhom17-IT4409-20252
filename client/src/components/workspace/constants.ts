@@ -17,3 +17,4 @@ export const TEMPLATE_LABELS = {
   todo: "To-do List",
   task_table: "Bảng công việc",
 };
+export const CREATABLE_DOCUMENT_TEMPLATES = ["blank"] as const;
