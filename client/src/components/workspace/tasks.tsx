@@ -23,6 +23,7 @@ function TaskForm({
   const [assigneeId, setAssigneeId] = useState("");
   const [documentId, setDocumentId] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [status, setStatus] = useState<WorkspaceTask["status"]>("todo");
   const [priority, setPriority] = useState<WorkspaceTask["priority"]>("medium");
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -32,6 +33,7 @@ function TaskForm({
       assigneeId: assigneeId || null,
       documentId: documentId || null,
       dueDate: dueDate ? new Date(`${dueDate}T00:00:00`).toISOString() : null,
+      status,
       priority,
     });
     onCreated();
@@ -39,7 +41,7 @@ function TaskForm({
   return (
     <form
       onSubmit={submit}
-      className="mb-4 grid gap-2 rounded-lg border bg-slate-50 p-3 md:grid-cols-5"
+      className="mb-4 grid gap-2 rounded-lg border bg-slate-50 p-3 md:grid-cols-6"
     >
       <input
         autoFocus
@@ -71,6 +73,15 @@ function TaskForm({
         <option value="medium">Trung bình</option>
         <option value="high">Cao</option>
       </select>
+      <select
+        value={status}
+        onChange={(e) => setStatus(e.target.value as WorkspaceTask["status"])}
+        className="rounded-md border bg-white px-2 text-sm"
+      >
+        <option value="todo">Chưa làm</option>
+        <option value="in_progress">Đang làm</option>
+        <option value="done">Hoàn thành</option>
+      </select>
       <input
         type="date"
         value={dueDate}
@@ -80,7 +91,7 @@ function TaskForm({
       <select
         value={documentId}
         onChange={(e) => setDocumentId(e.target.value)}
-        className="rounded-md border bg-white px-2 py-2 text-sm md:col-span-2"
+        className="rounded-md border bg-white px-2 py-2 text-sm md:col-span-3"
       >
         <option value="">Không gắn tài liệu</option>
         {workspace.documents?.map((document) => (
@@ -436,12 +447,9 @@ function AssignmentTable({
   const [query, setQuery] = useState("");
   const [assignee, setAssignee] = useState("");
   const [status, setStatus] = useState("");
-  const [completion, setCompletion] = useState("");
   const [sortKey, setSortKey] = useState<TaskSortKey>("dueDate");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const activeFilterCount = [assignee, status, completion].filter(
-    Boolean
-  ).length;
+  const activeFilterCount = [assignee, status].filter(Boolean).length;
   const priorityRank = { low: 1, medium: 2, high: 3 };
   const visibleTasks = [...tasks]
     .filter((task) => {
@@ -449,9 +457,7 @@ function AssignmentTable({
       return (
         (!keyword || task.title.toLowerCase().includes(keyword)) &&
         (!assignee || task.assigneeId === assignee) &&
-        (!status || task.status === status) &&
-        (!completion ||
-          (completion === "done" ? task.completed : !task.completed))
+        (!status || task.status === status)
       );
     })
     .sort((first, second) => {
@@ -474,7 +480,6 @@ function AssignmentTable({
     setQuery("");
     setAssignee("");
     setStatus("");
-    setCompletion("");
   }
   return (
     <Card className="overflow-hidden">
@@ -535,18 +540,6 @@ function AssignmentTable({
               <option value="todo">Chưa làm</option>
               <option value="in_progress">Đang làm</option>
               <option value="done">Hoàn thành</option>
-            </select>
-            <label className="mt-3 block text-[11px] font-medium text-slate-500">
-              Hoàn thành
-            </label>
-            <select
-              value={completion}
-              onChange={(e) => setCompletion(e.target.value)}
-              className="mt-1 w-full rounded-md border bg-white px-2 py-1.5 text-xs"
-            >
-              <option value="">Tất cả</option>
-              <option value="done">Đã hoàn thành</option>
-              <option value="open">Chưa hoàn thành</option>
             </select>
             <button
               type="button"
@@ -623,7 +616,6 @@ function AssignmentTable({
                   {column.name}
                 </th>
               ))}
-              <th className="border-r px-3 py-2 font-medium">Hoàn thành</th>
               <th className="w-10 px-3 py-2" />
             </tr>
           </thead>
@@ -645,7 +637,21 @@ function AssignmentTable({
                   </span>
                 </td>
                 <td className="border-r px-3 py-2">
-                  <StatusPill status={task.status} />
+                  <select
+                    value={task.status}
+                    onChange={async (event) => {
+                      await updateWorkspaceTask(workspace.id, task.id, {
+                        status: event.target.value as WorkspaceTask["status"],
+                      });
+                      reload();
+                    }}
+                    className="rounded-md border bg-white px-2 py-1 text-xs"
+                    aria-label="Trạng thái"
+                  >
+                    <option value="todo">Chưa làm</option>
+                    <option value="in_progress">Đang làm</option>
+                    <option value="done">Hoàn thành</option>
+                  </select>
                 </td>
                 <td className="border-r px-3 py-2">
                   <PriorityPill priority={task.priority} />
@@ -661,19 +667,6 @@ function AssignmentTable({
                     -
                   </td>
                 ))}
-                <td className="border-r px-3 py-2 text-center">
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={async () => {
-                      await updateWorkspaceTask(workspace.id, task.id, {
-                        completed: !task.completed,
-                      });
-                      reload();
-                    }}
-                    className="h-4 w-4 accent-primary"
-                  />
-                </td>
                 <td className="px-3 py-2">
                   <span className="opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
                     <TaskActionMenu

@@ -18,6 +18,7 @@ const taskSchema = z.object({
   assigneeId: z.string().uuid().nullable().optional(),
   documentId: z.string().uuid().nullable().optional(),
   dueDate: z.string().datetime().nullable().optional(),
+  status: z.enum(["todo", "in_progress", "done"]).optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
 });
 const taskUpdateSchema = z.object({
@@ -243,8 +244,13 @@ export async function createTask(req, res) {
     const parsed = taskSchema.safeParse(req.body);
     if (!parsed.success) return fail(res, 400, "Invalid task input.");
     if (!await validateTaskLinks(res, req.params.workspaceId, parsed.data)) return;
+    const data = { ...parsed.data };
+    if (data.status === "done") {
+      data.completed = true;
+      data.completedAt = new Date();
+    }
     const task = await prisma.task.create({
-      data: { ...parsed.data, dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null, workspaceId: req.params.workspaceId, createdById: userId(req) },
+      data: { ...data, dueDate: data.dueDate ? new Date(data.dueDate) : null, workspaceId: req.params.workspaceId, createdById: userId(req) },
       include: { assignee: true, createdBy: true, document: { select: { id: true, title: true } } },
     });
     return ok(res, 201, formatTask(task), "Task created.");
