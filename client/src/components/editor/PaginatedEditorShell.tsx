@@ -265,14 +265,12 @@ export function PaginatedEditorShell({
                             className="pointer-events-auto print-no-padding"
                             style={{
                                 width: pageWidth,
-                                minHeight: pageHeight,
                                 paddingTop: `${margins.top}px`,
                                 paddingRight: `${margins.right}px`,
                                 paddingBottom: `${margins.bottom}px`,
                                 paddingLeft: `${margins.left}px`,
                                 boxSizing: "border-box",
-                                "--editor-page-content-height": `${pageHeight - margins.top - margins.bottom}px`,
-                            } as React.CSSProperties}
+                            }}
                         >
                             {children}
                         </div>
