@@ -514,7 +514,7 @@ export default function LexicalEditor({
     <LexicalComposer initialConfig={initialConfig}>
       <div
         ref={editorWrapperRef}
-        className="relative h-full w-full"
+        className="relative h-full min-h-[var(--editor-page-content-height)] w-full"
         onMouseDownCapture={handlePointerDown}
       >
         <FloatingCommentButton
@@ -524,7 +524,7 @@ export default function LexicalEditor({
 
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="focus:outline-none min-h-full prose prose-sm max-w-none editor-content" 
+            <ContentEditable className="min-h-[var(--editor-page-content-height)] max-w-none cursor-text focus:outline-none prose prose-sm editor-content" 
             style={{ fontSize: "11px", fontFamily: "Arial, sans-serif" }}/>
             
           }
