@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Camera, FileText, Save, Shield, User, Sparkles } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
+import { ChatPanel } from '@/components/chat-panel';
 import { FeaturesSection } from '@/components/features-section';
 import {
   changeCurrentUserPassword,
@@ -240,6 +241,7 @@ export default function SettingsPage() {
         </div>
       </main>
       <Footer />
+      <ChatPanel />
     </div>
   );
 }

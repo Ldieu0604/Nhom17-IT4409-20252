@@ -3,14 +3,14 @@ import { Users, Mail, MapPin, ExternalLink } from "lucide-react"
 
 const teamMembers = [
   {
-    name: "Nguyễn Khánh Lâm",
-    role: "Backend Developer",
-    email: "nguyenkhanhlam@coworkhub.vn",
+    name: "Nguyễn Văn A",
+    role: "Project Lead",
+    email: "nguyenvana@coworkhub.vn",
   },
   {
-    name: "Đoàn Diệu Linh",
-    role: "Frontend Developer",
-    email: "doanlinh@coworkhub.vn",
+    name: "Trần Thị B",
+    role: "Full-stack Developer",
+    email: "tranthib@coworkhub.vn",
   },
   {
     name: "Hoàng Thuỳ Linh",
@@ -18,9 +18,9 @@ const teamMembers = [
     email: "hoangthuylinh@coworkhub.vn",
   },
   {
-    name: "Lê Vũ Hương Lan",
-    role: "Frontend Developer",
-    email: "levuhuonglan@coworkhub.vn",
+    name: "Phạm Thị D",
+    role: "Backend Developer",
+    email: "phamthid@coworkhub.vn",
   },
 ]
 
