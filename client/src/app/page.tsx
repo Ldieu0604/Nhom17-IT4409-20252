@@ -5,7 +5,6 @@ import { TemplatesSection } from "@/components/templates-section";
 import { RecentDocuments } from "@/components/recent-documents";
 import { WorkspacesSection } from "@/components/workspaces-section";
 import { CalendarSection } from "@/components/calendar-section";
-import { ChatPanel } from "@/components/chat-panel";
 
 export default function Home() {
   return (
@@ -23,7 +22,6 @@ export default function Home() {
       </main>
 
       <Footer />
-      <ChatPanel />
     </div>
   );
 }

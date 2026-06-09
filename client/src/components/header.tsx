@@ -115,10 +115,6 @@ export function Header() {
             <NotificationBell />
           </div>
 
-          <Button variant="ghost" size="icon" className="hidden sm:flex">
-            <Settings className="h-5 w-5" />
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
@@ -128,28 +124,13 @@ export function Header() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="flex items-center gap-2 p-2">
-                <Avatar className="h-8 w-8">
-                  {user?.avatar && <AvatarImage src={user.avatar} alt={displayName} />}
-                  <AvatarFallback className="bg-primary text-primary-foreground">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm font-medium">{displayName}</span>
-                  {user?.email && <span className="truncate text-xs text-muted-foreground">{user.email}</span>}
-                </div>
-              </div>
-              <DropdownMenuSeparator />
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem asChild>
-                <Link href="/settings">Tài khoản của tôi</Link>
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Cài đặt
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard">Dashboard tài liệu</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/settings">Cài đặt</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>Trợ giúp</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive" onSelect={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
