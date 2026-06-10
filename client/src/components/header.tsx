@@ -173,14 +173,6 @@ export function Header() {
               <LayoutGrid className="h-4 w-4" />
               Workspace
             </Link>
-            <Link href="/#calendar" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
-              <Calendar className="h-4 w-4" />
-              Lịch
-            </Link>
-            <Link href="#" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary">
-              <Users className="h-4 w-4" />
-              Nhóm
-            </Link>
           </nav>
         </div>
       )}
