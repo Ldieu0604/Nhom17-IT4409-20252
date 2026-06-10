@@ -134,16 +134,16 @@ export function StatCard({
   tone: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border bg-white p-4 shadow-sm shadow-slate-100">
+    <div className="flex min-w-0 items-center gap-4 rounded-xl border bg-white p-4 shadow-sm shadow-slate-100">
       <span
         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${tone}`}
       >
         <Icon className="h-5 w-5" />
       </span>
-      <div>
-        <p className="text-sm font-medium">{label}</p>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">{label}</p>
         <p className="text-2xl font-semibold leading-tight">{value}</p>
-        <p className="mt-1 text-xs text-slate-500">{caption}</p>
+        <p className="mt-1 truncate text-xs text-slate-500">{caption}</p>
       </div>
     </div>
   );
@@ -158,7 +158,7 @@ export function Card({
 }) {
   return (
     <section
-      className={`rounded-xl border bg-white shadow-sm shadow-slate-100 ${className}`}
+      className={`min-w-0 rounded-xl border bg-white shadow-sm shadow-slate-100 ${className}`}
     >
       {children}
     </section>

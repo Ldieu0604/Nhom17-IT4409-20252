@@ -15,8 +15,8 @@ function MemberProgressCard({
   tasks: WorkspaceTask[];
 }) {
   return (
-    <Card className="p-4">
-      <div className="mb-3 flex items-end justify-between">
+    <Card className="min-w-0 p-4">
+      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <h2 className="font-semibold">Tiến độ thành viên</h2>
         <span className="text-[11px] text-slate-500">Deadline gần nhất</span>
       </div>
@@ -38,15 +38,15 @@ function MemberProgressCard({
           return (
             <div
               key={member.id}
-              className="grid grid-cols-[minmax(110px,1.1fr)_minmax(100px,1fr)_minmax(110px,2fr)_42px_64px] items-center gap-3 border-t py-3 text-xs"
+              className="grid min-w-0 gap-2 border-t py-3 text-xs sm:grid-cols-[minmax(110px,1.1fr)_minmax(100px,1fr)_minmax(110px,2fr)_42px_64px] sm:items-center sm:gap-3"
             >
-              <span className="flex items-center gap-2 font-medium text-slate-800">
+              <span className="flex min-w-0 items-center gap-2 font-medium text-slate-800">
                 <Avatar
                   name={member.user.displayName}
                   avatar={member.user.avatar}
                   size="sm"
                 />
-                {member.user.displayName}
+                <span className="min-w-0 truncate">{member.user.displayName}</span>
               </span>
               <span className="text-slate-500">
                 {done}/{assigned.length} việc hoàn thành
@@ -58,7 +58,7 @@ function MemberProgressCard({
                 />
               </span>
               <span className="font-semibold text-primary">{progress}%</span>
-              <span className="text-right">
+              <span className="text-left text-slate-500 sm:text-right">
                 {next ? dateLabel(next.dueDate) : "-"}
               </span>
             </div>
@@ -77,20 +77,22 @@ function DeadlinesCard({ tasks }: { tasks: WorkspaceTask[] }) {
     )
     .slice(0, 5);
   return (
-    <Card className="p-4">
+    <Card className="min-w-0 p-4">
       <h2 className="mb-2 font-semibold">Deadline cần chú ý</h2>
       {items.map((task) => (
         <div
           key={task.id}
-          className="grid grid-cols-[minmax(100px,1fr)_minmax(160px,2fr)_82px_88px] items-center gap-3 border-t py-2.5 text-xs"
+          className="grid min-w-0 gap-2 border-t py-3 text-xs sm:grid-cols-[minmax(100px,1fr)_minmax(160px,2fr)_82px_88px] sm:items-center sm:gap-3"
         >
-          <span className="flex items-center gap-2 font-medium">
+          <span className="flex min-w-0 items-center gap-2 font-medium">
             <Avatar
               name={task.assignee?.displayName || "?"}
               avatar={task.assignee?.avatar}
               size="sm"
             />
-            {task.assignee?.displayName || "Chưa giao"}
+            <span className="min-w-0 truncate">
+              {task.assignee?.displayName || "Chưa giao"}
+            </span>
           </span>
           <span className="truncate">{task.title}</span>
           <StatusPill status={task.status} />
@@ -236,7 +238,7 @@ export function WorkspaceOverview({
     (task) => !task.completed && task.dueDate && new Date(task.dueDate) < now
   ).length;
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Đã hoàn thành"
@@ -267,12 +269,12 @@ export function WorkspaceOverview({
           tone="bg-red-100 text-red-600"
         />
       </div>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(280px,1fr)]">
-        <div className="space-y-4">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(280px,1fr)]">
+        <div className="min-w-0 space-y-4">
           <MemberProgressCard workspace={workspace} tasks={tasks} />
           <DeadlinesCard tasks={tasks} />
         </div>
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <DocumentsSummaryCard
             workspace={workspace}
             onShowAll={() => goTo("documents")}

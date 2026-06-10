@@ -72,7 +72,7 @@ export function WorkspaceDetail({ workspaceId }: { workspaceId: string }) {
     task.title.toLowerCase().includes(search.trim().toLowerCase())
   );
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50">
       <WorkspaceTopBar
         search={search}
         onSearchChange={setSearch}
@@ -82,7 +82,7 @@ export function WorkspaceDetail({ workspaceId }: { workspaceId: string }) {
       />
       <WorkspaceHeader workspace={workspace} />
       <WorkspaceTabs active={activeTab} onChange={setActiveTab} />
-      <main className="mx-auto max-w-7xl px-5 py-5">
+      <main className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-5">
         {activeTab === "overview" && (
           <WorkspaceOverview
             workspace={workspace}
